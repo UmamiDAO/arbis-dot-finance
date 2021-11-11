@@ -1,5 +1,6 @@
 import React from 'react'
 import { Outlet } from 'react-router-dom'
+import ThemeSwitcher from './ThemeSwitcher'
 
 export default function Layout() {
 
@@ -13,6 +14,7 @@ export default function Layout() {
 
       <footer>
         Footer goes here
+        <ThemeSwitcher />
       </footer>
     </>
   );

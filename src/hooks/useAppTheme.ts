@@ -1,23 +1,23 @@
 import React from 'react';
 import Cookies from 'js-cookie';
-
-export type Themes = 'light' | 'dark';
+import ThemeContext, { Themes } from '../contexts/ThemeContext';
 
 const THEME_KEY = 'arbis_current_theme';
 
-export default function useAppTheme() {
-  const [currentTheme, setCurrentTheme] = React.useState<Themes>(
-    (Cookies.get(THEME_KEY) as Themes) || 'light'
-  );
+export default function useAppTheme(): [theme: Themes, setTheme: (_theme: Themes) => void] {
+  const { theme, setTheme } = React.useContext(ThemeContext);
+  const savedTheme = Cookies.get(THEME_KEY) as Themes;
 
-  function handleThemeChange(_theme: Themes) {
-    if (_theme !== currentTheme) {
-      Cookies.set(THEME_KEY, _theme);
-      setCurrentTheme(_theme);
-    }
-
-    return;
+  if (savedTheme && theme !== savedTheme) {
+    setTheme(savedTheme);
   }
 
-  return [currentTheme, handleThemeChange];
+  function handleChange(_theme: Themes) {
+    if (_theme !== theme) {
+      setTheme(_theme);
+      Cookies.set(THEME_KEY, _theme, { expires: 90 });
+    }
+  }
+
+  return [theme, handleChange]
 }
