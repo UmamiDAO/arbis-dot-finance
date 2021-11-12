@@ -1,64 +1,44 @@
 import React from 'react';
+import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSun, faMoon } from '@fortawesome/free-solid-svg-icons';
-import Cookies from 'js-cookie';
 
-const THEME_KEY = 'arbis_current_theme';
+type Props = {
+  theme: 'light' | 'dark';
+  changeTheme: () => void;
+};
 
-export default function ThemeSwitcher() {
-  const [appEl, setAppEl] = React.useState<HTMLDivElement | null>(null);
+const ThemeSwitcherStyles = styled.aside`
+  --spacing: 0.5rem;
 
-  const setEl = React.useCallback(() => {
-    if (appEl === null && typeof document !== 'undefined') {
-      const el = document.querySelector('#App') as HTMLDivElement;
-      setAppEl(el);
-      el.dataset.theme = Cookies.get(THEME_KEY) || 'light';
-    }
-  }, [appEl]);
+  position: fixed;
+  bottom: var(--spacing);
+  right: var(--spacing);
+`;
 
-  React.useEffect(() => {
-    setEl();
-  }, [setEl]);
-
-  function handleThemeSwitch() {
-    if (!appEl) {
-      return;
-    }
-
-    if (appEl.dataset.theme === 'light') {
-      appEl.dataset.theme = 'dark';
-      Cookies.set(THEME_KEY, 'dark')
-      return;
-    }
-
-    appEl.dataset.theme = 'light';
-    Cookies.set(THEME_KEY, 'light')
-  }
-
-  if (!appEl) {
-    return null;
-  }
-
+export default function ThemeSwitcher({ theme, changeTheme }: Props) {
   return (
-    <div className="flex">
-      <div className="mr-2">
-        {appEl.dataset.theme === 'light' ? (
-          <FontAwesomeIcon icon={faSun} className="text-yellow-300" />
-        ) : (
-          <FontAwesomeIcon icon={faMoon} className="text-yellow-200" />
-        )}
+    <ThemeSwitcherStyles>
+      <div className="flex items-center">
+        <div className="mr-2">
+          {theme === 'light' ? (
+            <FontAwesomeIcon icon={faSun} className="text-yellow-400" />
+          ) : (
+            <FontAwesomeIcon icon={faMoon} className="text-yellow-300" />
+          )}
+        </div>
+        <div
+          role="checkbox"
+          aria-checked={theme === 'dark'}
+          tabIndex={0}
+          className={`bg-gray-400 p-1 shadow-lg hover:shadow cursor-pointer rounded-full flex w-12 ${
+            theme === 'light' ? '' : 'justify-end bg-blue-300'
+          }`}
+          onClick={() => changeTheme()}
+        >
+          <div className="h-4 w-4 rounded-full bg-white" />
+        </div>
       </div>
-      <div
-        role="checkbox"
-        aria-checked={appEl.dataset.theme === 'dark'}
-        tabIndex={0}
-        className={`bg-gray-300 shadow rounded-full flex w-16 ${
-          appEl.dataset.theme === 'light' ? '' : 'justify-end bg-blue-300'
-        }`}
-        onClick={() => handleThemeSwitch()}
-      >
-        <div className="w-1/2 h-auto rounded-full bg-white" />
-      </div>
-    </div>
+    </ThemeSwitcherStyles>
   );
 }
