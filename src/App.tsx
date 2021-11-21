@@ -4,6 +4,7 @@ import { ThemeProvider } from 'styled-components';
 import Cookies from 'js-cookie';
 import GlobalStyle from './components/styled/GlobalStyle';
 import AppStyles from './components/styled/AppStyles';
+import GlobalProvider from './contexts/GlobalProvider';
 import Layout from './components/Layout';
 import Home from './components/Home';
 import Support from './components/Support';
@@ -34,19 +35,21 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <GlobalStyle />
-      <AppStyles>
-        <div id="App">
-          <HashRouter>
-            <Routes>
-              <Route path="/" element={<Layout />}>
-                <Route index element={<Home />} />
-              </Route>
-            </Routes>
-          </HashRouter>
-          <Support />
-          <ThemeSwitcher theme={getTheme()} changeTheme={changeTheme} />
-        </div>
-      </AppStyles>
+      <GlobalProvider>
+        <AppStyles>
+          <div id="App">
+            <HashRouter>
+              <Routes>
+                <Route path="/" element={<Layout />}>
+                  <Route index element={<Home />} />
+                </Route>
+              </Routes>
+            </HashRouter>
+            <Support />
+            <ThemeSwitcher theme={getTheme()} changeTheme={changeTheme} />
+          </div>
+        </AppStyles>
+      </GlobalProvider>
     </ThemeProvider>
   );
 }

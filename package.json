@@ -7,6 +7,7 @@
     "@fortawesome/fontawesome-svg-core": "^1.2.36",
     "@fortawesome/free-solid-svg-icons": "^5.15.4",
     "@fortawesome/react-fontawesome": "^0.1.16",
+    "@portis/web3": "^4.0.6",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",
@@ -14,6 +15,10 @@
     "@types/node": "^12.0.0",
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
+    "@walletconnect/web3-provider": "^1.6.6",
+    "authereum": "^0.1.14",
+    "ethers": "^5.5.1",
+    "fortmatic": "^2.2.1",
     "js-cookie": "^3.0.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
@@ -21,7 +26,9 @@
     "react-scripts": "4.0.3",
     "styled-components": "^5.3.3",
     "typescript": "^4.1.2",
-    "web-vitals": "^1.0.1"
+    "walletlink": "^2.2.6",
+    "web-vitals": "^1.0.1",
+    "web3modal": "^1.9.4"
   },
   "scripts": {
     "start": "craco start",
