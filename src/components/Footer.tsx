@@ -3,7 +3,7 @@ import { FOOTER_LINKS } from '../config';
 
 export default function Footer() {
   return (
-    <footer>
+    <footer className="mt-12">
       <div className="flex items-center p-4 justify-center text-center max-w-2xl m-auto w-full">
         <ul>
           {FOOTER_LINKS.map((link, index) => (

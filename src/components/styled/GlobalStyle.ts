@@ -12,30 +12,6 @@ const GlobalStyle = createGlobalStyle`
     font-family: var(--font-display);
   }
 
-  .bg-dark {
-    background-color: var(--color-dark);
-  }
-
-  .bg-light {
-    background-color: var(--color-light);
-  }
-
-  .bg-primary {
-    background-color: var(--color-primary);
-  }
-
-  .text-primary {
-    color: var(--color-primary);
-  }
-
-  .text-light {
-    color: var(--color-light);
-  }
-
-  .text-dark {
-    color: var(--color-dark);
-  }
-
   .wave {
     span {
       position: relative;

@@ -21,7 +21,7 @@ export default function Support() {
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className="border hover:text-blue-500 hover:border-blue-500 transition duration-200 ease-in border-gray-500 rounded-full flex-1 px-4 py-2"
+        className="border hover:text-blue-500 hover:border-blue-500 transition duration-200 ease-in border-gray-300 rounded-full flex-1 px-4 py-2"
       >
         <span role="img" aria-label="support" className="mr-2">
           💬

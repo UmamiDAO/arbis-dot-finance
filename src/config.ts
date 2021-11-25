@@ -37,6 +37,33 @@ export const FOOTER_LINKS = [
   },
 ];
 
+export const NAVIGATION_LINKS = [
+  {
+    text: 'Home',
+    href: '/',
+  },
+  {
+    text: 'ARBIS Farms',
+    href: '/arbis-farms',
+  },
+  {
+    text: 'NYAN Farms',
+    href: '/nyan-farms',
+  },
+  {
+    text: 'Swapr Farms',
+    href: '/swapr-farms',
+  },
+  {
+    text: 'Sushi Farms',
+    href: '/sushi-farms',
+  },
+  {
+    text: 'Legacy Farms',
+    href: '/legacy-farms',
+  },
+];
+
 export const INFURA_ID = '460f40a260564ac4a4f4b3fffb032dad';
 
 export const ETHERSCAN_KEY = 'PSW8C433Q667DVEX5BCRMGNAH9FSGFZ7Q8';

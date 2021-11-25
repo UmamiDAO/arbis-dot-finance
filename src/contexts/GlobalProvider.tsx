@@ -11,7 +11,6 @@ export default function GlobalProvider({ children }: Props) {
   const reducer = React.useReducer((state: GlobalState, action: GlobalActions) => {
     switch (action.type) {
       case 'provider':
-        console.log(action.payload);
         return { ...state, injectedProvider: action.payload.injectedProvider };
       default:
         throw new Error('unsupported action type given on GlobalProvider');

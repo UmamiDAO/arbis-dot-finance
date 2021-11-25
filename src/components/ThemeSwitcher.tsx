@@ -31,8 +31,8 @@ export default function ThemeSwitcher({ theme, changeTheme }: Props) {
           role="checkbox"
           aria-checked={theme === 'dark'}
           tabIndex={0}
-          className={`bg-gray-400 p-1 shadow-lg hover:shadow cursor-pointer rounded-full flex w-12 ${
-            theme === 'light' ? '' : 'justify-end bg-blue-300'
+          className={`p-1 border-gray-300 transition-all duration-500 hover:shadow cursor-pointer rounded-full flex w-12 ${
+            theme === 'light' ? 'bg-gray-300' : 'justify-end bg-blue-500'
           }`}
           onClick={() => changeTheme()}
         >
