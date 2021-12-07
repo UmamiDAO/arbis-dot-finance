@@ -10,7 +10,7 @@ export default function useExchangePrice(targetNetwork: Network = NETWORKS.arbit
   const [price, setPrice] = React.useState<number>(0);
   const mainnetProvider = useMainnetProvider();
 
-  async function getETHPrice() {
+  const getETHPrice = React.useCallback(async () => {
     if (mainnetProvider === null) {
       return;
     }
@@ -27,7 +27,7 @@ export default function useExchangePrice(targetNetwork: Network = NETWORKS.arbit
     } catch (err) {
       console.log(err);
     }
-  }
+  }, [mainnetProvider]);
 
   usePoller(getETHPrice);
 

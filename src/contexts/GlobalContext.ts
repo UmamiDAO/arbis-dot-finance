@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Web3Provider } from '@ethersproject/providers/src.ts/web3-provider';
+import type { Web3Provider } from '@ethersproject/providers';
 
 export type GlobalState = {
   injectedProvider: Web3Provider | null;

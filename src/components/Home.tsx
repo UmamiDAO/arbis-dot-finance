@@ -1,6 +1,5 @@
 import React from 'react';
-import ArbisSpinner from './ArbisSpinner';
-import useGlobalState from '../hooks/useGlobalState';
+import UIWrapper from './UIWrapper'
 
 const foodCourtLinks = [
   {
@@ -18,16 +17,9 @@ const foodCourtLinks = [
 ];
 
 export default function Home() {
-  const [{ injectedProvider }] = useGlobalState();
-
   return (
-    <main>
-      {injectedProvider === null ? (
-        <div className="w-full m-auto max-w-3xl p-4 flex flex-col items-center justify-center">
-          <ArbisSpinner />
-          <p className="mt-4">Connect your wallet on the Arbitrum Network</p>
-        </div>
-      ) : (
+    <UIWrapper>
+      <main>
         <div className="w-full m-auto max-w-3xl p-4 mt-4">
           <header>
             <h1 className="text-3xl">Arbi's Finance</h1>
@@ -155,7 +147,7 @@ export default function Home() {
             </p>
           </aside>
         </div>
-      )}
-    </main>
+      </main>
+    </UIWrapper>
   );
 }

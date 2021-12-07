@@ -9,6 +9,11 @@ const SupportStyles = styled.aside`
   position: fixed;
   left: var(--spacing);
   bottom: var(--spacing);
+
+  a {
+    color: ${props => props.theme.color};
+    background-color: ${props => props.theme.backgroundColor}
+  }
 `;
 
 export default function Support() {

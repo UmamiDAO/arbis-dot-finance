@@ -7,7 +7,7 @@ export default function Navigation() {
     <nav>
       <ul className="flex items-center justify-center text-center max-w-3xl w-full m-auto">
         {NAVIGATION_LINKS.map((link) => (
-          <NavigationLink link={link} key={link.text} />
+          <NavigationLink link={link} key={link.text} crossedOut={link.href === '/legacy-farms'} />
         ))}
       </ul>
     </nav>

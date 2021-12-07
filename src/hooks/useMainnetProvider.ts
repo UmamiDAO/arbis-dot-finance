@@ -33,5 +33,6 @@ export default function useMainnetProvider() {
     }
   }, [poktMainnetProvider, scaffoldEthProvider, mainnetInfura]);
 
-  return mainnetProvider;
+  // force mainnet infura until told otherwise
+  return mainnetInfura || mainnetProvider;
 }
