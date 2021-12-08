@@ -5,11 +5,18 @@ const GlobalStyle = createGlobalStyle`
     --color-dark: #212121;
     --color-light: #ffffff;
     --color-primary: #d8121b;
-    --font-display: 'Sanchez', serif;
+    --font-display: 'Barlow', serif;
+    --font-body: 'Source Code Pro', monospace;
   }
 
   body {
+    font-family: var(--font-body);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
+    font-weight: 800;
+    text-transform: uppercase;
   }
 
   .wave {

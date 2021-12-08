@@ -4,10 +4,10 @@ import { NAVIGATION_LINKS } from '../config';
 
 export default function Navigation() {
   return (
-    <nav>
-      <ul className="flex items-center justify-center text-center max-w-3xl w-full m-auto">
+    <nav className="flex-1">
+      <ul className="flex-1 flex items-center">
         {NAVIGATION_LINKS.map((link) => (
-          <NavigationLink link={link} key={link.text} crossedOut={link.href === '/legacy-farms'} />
+          <NavigationLink link={link} key={link.text} />
         ))}
       </ul>
     </nav>

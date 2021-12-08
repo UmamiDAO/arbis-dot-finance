@@ -10,6 +10,11 @@ const AppContainer = styled.div`
     background-color: ${props => props.theme.backgroundColor};
     color: ${props => props.theme.color};
   }
+
+  input {
+    background-color: ${props => props.theme.backgroundColor};
+    color: ${props => props.theme.color};
+  }
 `;
 
 export default AppContainer;

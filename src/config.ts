@@ -1,5 +1,11 @@
+import NyanStakingPoolAddress from './contracts/NyanStakingPool.address';
+import NyanETHStakingPoolAddress from './contracts/NyanETHStakingPool.address';
+import CarbonStakingPoolAddress from './contracts/CarbonStakingPool.address';
+import PongStakingPoolAddress from './contracts/PongStakingPool.address';
+import PonzuStakingPoolAddress from './contracts/PonzuStakingPool.address';
+import ApeStakingPoolAddress from './contracts/ApeStakingPool.address';
+
 export const THEMES = {
-  // TODO add link colors per theme, etc
   light: {
     color: 'var(--color-dark)',
     backgroundColor: 'var(--color-light)',
@@ -39,9 +45,16 @@ export const FOOTER_LINKS = [
 
 export const NAVIGATION_LINKS = [
   {
-    text: 'Home',
+    text: 'Dashboard',
     href: '/',
   },
+  {
+    text: 'Farms',
+    href: '/farms',
+  },
+];
+
+export const FARMS_LINKS = [
   {
     text: 'ARBIS Farms',
     href: '/arbis-farms',
@@ -232,3 +245,50 @@ export const NETWORKS = {
     gasPrice: 225000000000,
   },
 };
+
+export const FARMS = Object.freeze({
+  NYAN: 'nyan',
+  NYANETH: 'nyan/eth (legacy)',
+  NYANETH2: 'nyan/eth',
+  CARBON: 'carbon',
+  PONG: 'pong',
+  PONZU: 'ponzu',
+  APE: 'ape',
+  USDCETH: 'usdc/eth',
+  MIMETH2: 'mim/eth',
+  SPELLETH: 'spell/eth',
+  SPELLETH2: 'spell/eth2',
+  MAGICUSDC: 'magicusdc',
+  AFARMETH: 'afarmeth',
+  SWPRETH: 'swpr/eth(ended)',
+  SWPRETH2: 'swpr/eth',
+  ARBIS_STAKING: 'arbis-staking',
+  PPEGG: 'ppegg',
+  PPEGGETH: 'ppegg/eth',
+  PPEGGUSDC: 'ppegg/usdc',
+  PONZI: 'PONZI Pool 1',
+  MIMETH: 'mim/eth (Inactive)',
+  STARBISOLD: 'stARBIS(Inactive)',
+  ARBISETH1: 'ARBISETH1(Inactive)',
+  ARBISETH2: 'ARBISETH2(Inactive)',
+  ARBISETH3: 'ARBIS/ETH (epoch 2)',
+  ARBISETH4: 'ARBIS/ETH (epoch 3',
+  PPEGGFARMS: 'Parrot Defi farms',
+  DPX: 'Dopex',
+  IVORYUSDC: 'ivory/usdc',
+  TOWERUSDC: 'tower/usdc',
+  HONEYETH: 'honey/eth',
+  HONEYUSDC: 'honey/usdc',
+  HONEYADOGE: 'honey/adoge',
+  SPELLETHRewards: 'SPELL/ETH Share Rewards',
+  MIMETHRewards: 'MIM/ETH Share Rewards',
+});
+
+export const STAKING_POOL_ADDRESSES = Object.freeze({
+  NYAN: NyanStakingPoolAddress,
+  NYANETH: NyanETHStakingPoolAddress,
+  CARBON: CarbonStakingPoolAddress,
+  PONG: PongStakingPoolAddress,
+  PONZU: PonzuStakingPoolAddress,
+  APE: ApeStakingPoolAddress,
+});

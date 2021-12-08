@@ -7,9 +7,8 @@ import AppStyles from './components/styled/AppStyles';
 import GlobalProvider from './contexts/GlobalProvider';
 import Layout from './components/Layout';
 import Home from './components/Home';
-import ArbisFarms from './components/ArbisFarms';
 import NotFound from './components/NotFound';
-import Support from './components/Support';
+import Farms from './components/Farms';
 import ThemeSwitcher from './components/ThemeSwitcher';
 import { THEMES, DEFAULT_THEME, THEME_KEY } from './config';
 
@@ -44,12 +43,14 @@ function App() {
               <Routes>
                 <Route path="/" element={<Layout />}>
                   <Route index element={<Home />} />
-                  <Route path="/arbis-farms" element={<ArbisFarms />} />
                   <Route path="*" element={<NotFound />} />
+                  <Route path="farms">
+                    <Route index element={<Farms />} />
+                    <Route path=":farm" element={<Farms />} />
+                  </Route>
                 </Route>
               </Routes>
             </HashRouter>
-            <Support />
             <ThemeSwitcher theme={getTheme()} changeTheme={changeTheme} />
           </div>
         </AppStyles>

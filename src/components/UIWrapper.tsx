@@ -13,7 +13,7 @@ export default function UIWrapper({ children }: Props) {
     return (
       <div className="w-full m-auto max-w-3xl p-4 flex flex-col items-center justify-center">
         <ArbisSpinner />
-        <p className="mt-4">Connect your wallet on the Arbitrum Network</p>
+        <p className="mt-4 font-display uppercase font-extrabold">Connect your wallet on the Arbitrum Network</p>
       </div>
     );
   }

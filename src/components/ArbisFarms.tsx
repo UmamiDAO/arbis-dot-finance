@@ -1,22 +1,13 @@
 import React from 'react';
 import UIWrapper from './UIWrapper';
-import FarmSelector from './FarmSelector';
 import StArbisFarm from './StArbisFarm';
-import StArbisAddress2 from '../contracts/StArbis2.address';
-import stARBISETHLPAddress from '../contracts/stARBISETHLP.address';
-import CHEEMSETHStrategyAddress from '../contracts/CHEEMSETHStrategy.address';
 
-const farms = [
-  {
-    id: 'stARBIS',
-    address: StArbisAddress2,
-    name: 'ARBIS',
-    earn: 'ETH',
-    isLP: false,
-    specialWarning: null,
-    hideDeposit: false,
-  },
+// TODO make card for each farm
 
+// import stARBISETHLPAddress from '../contracts/stARBISETHLP.address';
+// import CHEEMSETHStrategyAddress from '../contracts/CHEEMSETHStrategy.address';
+
+/* const farms = [
   {
     id: 'st[ARBIS/ETH] SUSHI LP',
     address: stARBISETHLPAddress,
@@ -31,7 +22,6 @@ const farms = [
     ),
     hideDeposit: false,
   },
-
   {
     id: 'CHEEMS/ETH (old)',
     name: 'CHEEMS/ETH (old)',
@@ -52,30 +42,14 @@ const farms = [
     specialWarning: null,
     hideDeposit: false,
   },
-];
-
-type Farm = typeof farms[0];
+]; */
 
 export default function ArbisFarms() {
-  const [currentFarm, setCurrentFarm] = React.useState<Farm>(farms[0]);
-
   return (
     <UIWrapper>
-      <main className="max-w-3xl m-auto w-full">
-        <FarmSelector>
-          {farms.map((farm) => (
-            <FarmSelector.Item
-              key={farm.id}
-              text={farm.id}
-              onClick={() => setCurrentFarm(farm)}
-              selected={currentFarm.id === farm.id}
-            />
-          ))}
-        </FarmSelector>
-        <div className="max-w-lg w-full m-auto">
-          {currentFarm.id === 'stARBIS' ? <StArbisFarm farm={currentFarm} /> : null}
-        </div>
-      </main>
+      <div className="mt-8 flex flex-wrap">
+        <StArbisFarm />
+      </div>
     </UIWrapper>
   );
 }
