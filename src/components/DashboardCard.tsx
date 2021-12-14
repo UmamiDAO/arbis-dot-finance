@@ -8,6 +8,7 @@ type ActionProps = {
   children: React.ReactNode;
   color: 'black' | 'white';
   onClick: () => void;
+  disabled?: boolean;
 };
 
 export default function DashboardCard({ children }: RootProps) {
@@ -36,14 +37,17 @@ function More({ children }: RootProps) {
   return <div className="my-4">{children}</div>;
 }
 
-function Action({ children, color, onClick }: ActionProps) {
+function Action({ children, color, onClick, disabled }: ActionProps) {
   return (
     <button
       className={`bg-${color} text-${color === 'white' ? 'black' : 'white'} border border-${
         color === 'white' ? 'black' : color
+      } opacity-${disabled ? '50' : '100'} cursor-${
+        disabled ? 'not-allowed' : 'pointer'
       } uppercase font-display font-extrabold p-4 rounded w-full mr-4 text-lg last:mr-0`}
       type="button"
       onClick={onClick}
+      disabled={disabled}
     >
       {children}
     </button>

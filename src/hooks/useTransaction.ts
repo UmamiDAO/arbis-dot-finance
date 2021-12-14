@@ -44,13 +44,16 @@ export default function useTransaction() {
         notify.notification({
           eventCode: 'txRequest',
           type: 'pending',
-          message: `Local Transaction Sent ${hash}`,
+          message: `Local Transaction Sent ${hash.slice(0, 6)}...`,
+          autoDismiss: 5000,
+          onclick: () => window.open(`https://arbiscan.io/tx/${hash}`),
         });
       } catch (err) {
         notify.notification({
           eventCode: 'txError',
           type: 'error',
           message: (err as Error).message || (err as any).toString(),
+          autoDismiss: 5000,
         });
       }
     },
