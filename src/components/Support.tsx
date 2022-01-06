@@ -1,6 +1,6 @@
-import React from 'react';
-import styled from 'styled-components';
-import { FOOTER_LINKS } from '../config';
+import React from 'react'
+import styled from 'styled-components'
+import { FOOTER_LINKS } from '../config'
 
 const SupportStyles = styled.aside`
   --spacing: 0.5rem;
@@ -11,14 +11,14 @@ const SupportStyles = styled.aside`
   bottom: var(--spacing);
 
   a {
-    color: ${props => props.theme.color};
-    background-color: ${props => props.theme.backgroundColor}
+    color: ${(props) => props.theme.color};
+    background-color: ${(props) => props.theme.backgroundColor};
   }
-`;
+`
 
 export default function Support() {
-  const discordLink = FOOTER_LINKS.find((link) => link.text === 'Discord');
-  const href = discordLink ? discordLink.href : '';
+  const discordLink = FOOTER_LINKS.find((link) => link.text === 'Discord')
+  const href = discordLink ? discordLink.href : ''
 
   return (
     <SupportStyles>
@@ -34,5 +34,5 @@ export default function Support() {
         <span>Support</span>
       </a>
     </SupportStyles>
-  );
+  )
 }

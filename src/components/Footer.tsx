@@ -1,5 +1,5 @@
-import React from 'react';
-import { FOOTER_LINKS } from '../config';
+import React from 'react'
+import { FOOTER_LINKS } from '../config'
 
 export default function Footer() {
   return (
@@ -8,14 +8,21 @@ export default function Footer() {
         <ul>
           {FOOTER_LINKS.map((link, index) => (
             <li className="inline-block" key={index}>
-              <a href={link.href} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-blue-500 transition duration-200 ease-in">
+              <a
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:text-blue-500 transition duration-200 ease-in"
+              >
                 {link.text}
               </a>
-              {index < FOOTER_LINKS.length - 1 ? <span className="m-2">|</span> : null}
+              {index < FOOTER_LINKS.length - 1 ? (
+                <span className="m-2">|</span>
+              ) : null}
             </li>
           ))}
         </ul>
       </div>
     </footer>
-  );
+  )
 }

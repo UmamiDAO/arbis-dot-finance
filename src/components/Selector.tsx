@@ -1,20 +1,22 @@
-import React from 'react';
+import React from 'react'
 
 type RootProps = {
-  children: React.ReactNode;
-};
+  children: React.ReactNode
+}
 
 export default function Selector({ children }: RootProps) {
   return (
-    <ul className="flex items-center mt-4 flex-wrap md:p-0 md:flex-no-wrap">{children}</ul>
-  );
+    <ul className="flex items-center mt-4 flex-wrap md:p-0 md:flex-no-wrap">
+      {children}
+    </ul>
+  )
 }
 
 type ItemProps = {
-  text: string;
-  selected: boolean;
-  onClick: () => void;
-};
+  text: string
+  selected: boolean
+  onClick: () => void
+}
 
 function Item({ text, selected, onClick }: ItemProps) {
   return (
@@ -29,7 +31,7 @@ function Item({ text, selected, onClick }: ItemProps) {
         {text}
       </button>
     </li>
-  );
+  )
 }
 
-Selector.Item = Item;
+Selector.Item = Item

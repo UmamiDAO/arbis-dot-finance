@@ -1,22 +1,22 @@
-import React from 'react';
-import axios from 'axios';
-import { formatEther } from '@ethersproject/units';
-import UIWrapper from './UIWrapper';
-import DashboardCard from './DashboardCard';
-import useExternalContractLoader from '../hooks/useExternalContractLoader';
-import NyanRewardsContractAbi from '../contracts/NyanRewardsContract.abi';
-import { STAKING_POOL_ADDRESSES } from '../config';
+import React from 'react'
+import axios from 'axios'
+import { formatEther } from '@ethersproject/units'
+import UIWrapper from './UIWrapper'
+import DashboardCard from './DashboardCard'
+import useExternalContractLoader from '../hooks/useExternalContractLoader'
+import NyanRewardsContractAbi from '../contracts/NyanRewardsContract.abi'
+import { STAKING_POOL_ADDRESSES } from '../config'
 
 export default function Home() {
   const initState: {
-    status: string;
-    arbisPrice: string;
-    arbisTVL: string;
+    status: string
+    arbisPrice: string
+    arbisTVL: string
   } = {
     status: 'idle',
     arbisPrice: '0',
     arbisTVL: '0',
-  };
+  }
   const [state, dispatch] = React.useReducer(
     (
       state: typeof initState,
@@ -27,65 +27,68 @@ export default function Home() {
     ) => {
       switch (action.type) {
         case 'started':
-          return { ...state, status: 'pending' };
+          return { ...state, status: 'pending' }
         case 'error':
-          return { ...state, status: 'rejected' };
+          return { ...state, status: 'rejected' }
         case 'success':
-          return { ...state, status: 'resolved', ...action.payload };
+          return { ...state, status: 'resolved', ...action.payload }
         default:
-          throw new Error('unsupported action type given on Home reducer');
+          throw new Error('unsupported action type given on Home reducer')
       }
     },
     initState
-  );
-  const [nyanAPY, setNyanAPY] = React.useState<number | null>(null);
+  )
+  const [nyanAPY, setNyanAPY] = React.useState<number | null>(null)
   const nyanContract = useExternalContractLoader(
     STAKING_POOL_ADDRESSES.NYAN,
     NyanRewardsContractAbi
-  );
+  )
 
   const getNyanAPY = React.useCallback(async () => {
     if (!nyanContract || nyanAPY !== null) {
-      return null;
+      return null
     }
 
     try {
-      const rewardRate = await nyanContract.rewardRate();
-      const totalSupply = await nyanContract.totalSupply();
-      const SECONDS_PER_YEAR = 365.25 * 24 * 60 * 60;
+      const rewardRate = await nyanContract.rewardRate()
+      const totalSupply = await nyanContract.totalSupply()
+      const SECONDS_PER_YEAR = 365.25 * 24 * 60 * 60
       const apr =
         (100 * parseFloat(formatEther(rewardRate)) * SECONDS_PER_YEAR) /
-        parseFloat(formatEther(totalSupply));
+        parseFloat(formatEther(totalSupply))
 
-      const apy = ((1 + apr / 100 / 12) ** 12 - 1) * 100;
-      setNyanAPY(apy);
+      const apy = ((1 + apr / 100 / 12) ** 12 - 1) * 100
+      setNyanAPY(apy)
     } catch (err) {
-      console.log(err);
+      console.log(err)
     }
-  }, [nyanContract, nyanAPY]);
+  }, [nyanContract, nyanAPY])
 
   const initialize = React.useCallback(async () => {
     if (state.status === 'idle') {
       try {
-        dispatch({ type: 'started' });
-        const { data } = await axios('https://horseysauce.xyz/');
-        dispatch({ type: 'success', payload: { arbisPrice: data.arbisPrice, arbisTVL: data.tvl } });
+        dispatch({ type: 'started' })
+        const { data } = await axios('https://horseysauce.xyz/')
+        dispatch({
+          type: 'success',
+          payload: { arbisPrice: data.arbisPrice, arbisTVL: data.tvl },
+        })
       } catch (err) {
-        console.log(err);
-        dispatch({ type: 'error' });
+        console.log(err)
+        dispatch({ type: 'error' })
       }
     }
-  }, [state]);
+  }, [state])
 
   React.useEffect(() => {
     if (nyanContract) {
-      getNyanAPY();
+      getNyanAPY()
     }
-  }, [nyanContract, getNyanAPY]);
+  }, [nyanContract, getNyanAPY])
 
   React.useEffect(() => {
-    initialize();
-  }, [initialize]);
+    initialize()
+  }, [initialize])
 
   return (
     <UIWrapper>
@@ -103,7 +106,9 @@ export default function Home() {
             <DashboardCard.Title>$ARBIS</DashboardCard.Title>
 
             {/* TODO make this dynamic */}
-            <DashboardCard.Subtitle>38.08% APR in past 7 days💰</DashboardCard.Subtitle>
+            <DashboardCard.Subtitle>
+              38.08% APR in past 7 days💰
+            </DashboardCard.Subtitle>
 
             <DashboardCard.Content>
               <div className="flex w-full justify-between mt-4">
@@ -155,5 +160,5 @@ export default function Home() {
         </section>
       </main>
     </UIWrapper>
-  );
+  )
 }

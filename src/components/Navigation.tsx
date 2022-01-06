@@ -1,6 +1,6 @@
-import React from 'react';
-import NavigationLink from './NavigationLink';
-import { NAVIGATION_LINKS } from '../config';
+import React from 'react'
+import NavigationLink from './NavigationLink'
+import { NAVIGATION_LINKS } from '../config'
 
 export default function Navigation() {
   return (
@@ -11,5 +11,5 @@ export default function Navigation() {
         ))}
       </ul>
     </nav>
-  );
+  )
 }

@@ -1,5 +1,5 @@
-import React from 'react';
-import styled from 'styled-components';
+import React from 'react'
+import styled from 'styled-components'
 
 const Spinner = styled.div`
     width: 100px;
@@ -86,7 +86,7 @@ const Spinner = styled.div`
       transform: rotate(360deg);
     }
   }
-`;
+`
 
 export default function ArbisSpinner() {
   return (
@@ -96,5 +96,5 @@ export default function ArbisSpinner() {
       <span>🍟</span>
       <span>🍔</span>
     </Spinner>
-  );
+  )
 }

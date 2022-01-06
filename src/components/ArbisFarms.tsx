@@ -1,6 +1,8 @@
-import React from 'react';
-import UIWrapper from './UIWrapper';
-import StArbisFarm from './StArbisFarm';
+import React from 'react'
+
+import UIWrapper from './UIWrapper'
+import StArbisFarm from './StArbisFarm'
+import StArbisEthSushiFarm from './StArbisEthSushiFarm'
 
 // TODO make card for each farm
 
@@ -49,7 +51,8 @@ export default function ArbisFarms() {
     <UIWrapper>
       <div className="mt-8 flex flex-wrap">
         <StArbisFarm />
+        <StArbisEthSushiFarm />
       </div>
     </UIWrapper>
-  );
+  )
 }

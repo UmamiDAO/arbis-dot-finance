@@ -1,23 +1,23 @@
-import React from 'react';
-import { useSearchParams } from 'react-router-dom';
-import Selector from './Selector';
-import ArbisFarms from './ArbisFarms';
+import React from 'react'
+import { useSearchParams } from 'react-router-dom'
+import Selector from './Selector'
+import ArbisFarms from './ArbisFarms'
 
-const tokens = ['arbis', 'sushi', 'swapr', 'nyan', 'legacy'];
+const tokens = ['arbis', 'sushi', 'swapr', 'nyan', 'legacy']
 
 export default function Farms() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const token = searchParams.get('token') || '';
+  const [searchParams, setSearchParams] = useSearchParams()
+  const token = searchParams.get('token') || ''
 
   const fallbackParams = React.useCallback(() => {
     if (!tokens.includes(token)) {
-      setSearchParams({ token: 'arbis' });
+      setSearchParams({ token: 'arbis' })
     }
-  }, [token, setSearchParams]);
+  }, [token, setSearchParams])
 
   React.useEffect(() => {
-    fallbackParams();
-  }, [fallbackParams]);
+    fallbackParams()
+  }, [fallbackParams])
 
   return (
     <main>
@@ -38,5 +38,5 @@ export default function Farms() {
 
       {token === 'arbis' ? <ArbisFarms /> : null}
     </main>
-  );
+  )
 }

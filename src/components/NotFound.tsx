@@ -1,4 +1,4 @@
-import React from 'react';
+import React from 'react'
 
 export default function NotFound() {
   return (
@@ -6,5 +6,5 @@ export default function NotFound() {
       <h1 className="text-4xl mt-12">There's nothing here!</h1>
       <p className="mt-12">This page doesn't exist.</p>
     </div>
-  );
+  )
 }

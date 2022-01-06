@@ -1,9 +1,9 @@
-import NyanStakingPoolAddress from './contracts/NyanStakingPool.address';
-import NyanETHStakingPoolAddress from './contracts/NyanETHStakingPool.address';
-import CarbonStakingPoolAddress from './contracts/CarbonStakingPool.address';
-import PongStakingPoolAddress from './contracts/PongStakingPool.address';
-import PonzuStakingPoolAddress from './contracts/PonzuStakingPool.address';
-import ApeStakingPoolAddress from './contracts/ApeStakingPool.address';
+import NyanStakingPoolAddress from './contracts/NyanStakingPool.address'
+import NyanETHStakingPoolAddress from './contracts/NyanETHStakingPool.address'
+import CarbonStakingPoolAddress from './contracts/CarbonStakingPool.address'
+import PongStakingPoolAddress from './contracts/PongStakingPool.address'
+import PonzuStakingPoolAddress from './contracts/PonzuStakingPool.address'
+import ApeStakingPoolAddress from './contracts/ApeStakingPool.address'
 
 export const THEMES = {
   light: {
@@ -14,11 +14,11 @@ export const THEMES = {
     color: 'var(--color-light)',
     backgroundColor: 'var(--color-dark)',
   },
-};
+}
 
-export const DEFAULT_THEME = THEMES.light;
+export const DEFAULT_THEME = THEMES.light
 
-export const THEME_KEY = 'arbis_current_theme';
+export const THEME_KEY = 'arbis_current_theme'
 
 export const FOOTER_LINKS = [
   {
@@ -41,7 +41,7 @@ export const FOOTER_LINKS = [
     text: 'Docs',
     href: 'https://arbisfinance.gitbook.io/food-court/',
   },
-];
+]
 
 export const NAVIGATION_LINKS = [
   {
@@ -52,7 +52,7 @@ export const NAVIGATION_LINKS = [
     text: 'Farms',
     href: '/farms',
   },
-];
+]
 
 export const FARMS_LINKS = [
   {
@@ -75,13 +75,13 @@ export const FARMS_LINKS = [
     text: 'Legacy Farms',
     href: '/legacy-farms',
   },
-];
+]
 
-export const INFURA_ID = '460f40a260564ac4a4f4b3fffb032dad';
+export const INFURA_ID = '460f40a260564ac4a4f4b3fffb032dad'
 
-export const ETHERSCAN_KEY = 'PSW8C433Q667DVEX5BCRMGNAH9FSGFZ7Q8';
+export const ETHERSCAN_KEY = 'PSW8C433Q667DVEX5BCRMGNAH9FSGFZ7Q8'
 
-export const BLOCKNATIVE_DAPPID = '0b58206a-f3c0-4701-a62f-73c7243e8c77';
+export const BLOCKNATIVE_DAPPID = '0b58206a-f3c0-4701-a62f-73c7243e8c77'
 
 export const NETWORKS = {
   localhost: {
@@ -244,7 +244,7 @@ export const NETWORKS = {
     rpcUrl: `https://api.avax.network/ext/bc/C/rpc`,
     gasPrice: 225000000000,
   },
-};
+}
 
 export const FARMS = Object.freeze({
   NYAN: 'nyan',
@@ -282,7 +282,7 @@ export const FARMS = Object.freeze({
   HONEYADOGE: 'honey/adoge',
   SPELLETHRewards: 'SPELL/ETH Share Rewards',
   MIMETHRewards: 'MIM/ETH Share Rewards',
-});
+})
 
 export const STAKING_POOL_ADDRESSES = Object.freeze({
   NYAN: NyanStakingPoolAddress,
@@ -291,4 +291,4 @@ export const STAKING_POOL_ADDRESSES = Object.freeze({
   PONG: PongStakingPoolAddress,
   PONZU: PonzuStakingPoolAddress,
   APE: ApeStakingPoolAddress,
-});
+})
