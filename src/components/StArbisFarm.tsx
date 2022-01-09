@@ -1,4 +1,5 @@
 import React from 'react'
+import axios from 'axios'
 import { formatEther, parseEther } from '@ethersproject/units'
 import { Formik, Form, Field } from 'formik'
 
@@ -33,6 +34,7 @@ export default function StArbisUI() {
     availableARBIS: null | string | number
     avaiableZ20: null | string | number
     avaiableCheems: null | string | number
+    apr: null | string | number
   } = {
     status: 'idle',
     tokenAddress: null,
@@ -48,6 +50,7 @@ export default function StArbisUI() {
     availableARBIS: null,
     avaiableZ20: null,
     avaiableCheems: null,
+    apr: null,
   }
   const [state, dispatch] = React.useReducer(
     (
@@ -72,6 +75,7 @@ export default function StArbisUI() {
               availableARBIS: null | string | number
               avaiableZ20: null | string | number
               avaiableCheems: null | string | number
+              apr: null | string | number
             }
           }
     ) => {
@@ -136,6 +140,7 @@ export default function StArbisUI() {
         rawAvailableARBIS,
         rawAvailableZ20,
         rawAvailableCheems,
+        horseysauce,
       ] = await Promise.all([
         farmContract.arbisToken(),
         tokenContract.balanceOf(userAddress),
@@ -146,11 +151,11 @@ export default function StArbisUI() {
         farmContract.symbol(),
         farmContract.totalSupply(),
         farmContract.balanceOf(userAddress),
-        farmContract.allowance(userAddress, farmAddress),
         farmContract.getAvailableTokenRewards(wETH),
         farmContract.getAvailableTokenRewards(state.tokenAddress),
         farmContract.getAvailableTokenRewards(Z2O),
         farmContract.getAvailableTokenRewards(cheems),
+        axios('https://horseysauce.xyz'),
       ])
 
       const tokenBalance = parseFloat(formatEther(rawTokenBalance)).toFixed(3)
@@ -160,6 +165,11 @@ export default function StArbisUI() {
       const availableARBIS = formatEther(rawAvailableARBIS)
       const avaiableZ20 = formatEther(rawAvailableZ20)
       const avaiableCheems = formatEther(rawAvailableCheems)
+      const {
+        data: {
+          stArbis: { apr },
+        },
+      } = horseysauce
 
       const isApproved = BigInt('0') !== approved
 
@@ -179,6 +189,7 @@ export default function StArbisUI() {
           availableARBIS,
           avaiableZ20,
           avaiableCheems,
+          apr,
         },
       })
     } catch (err) {
@@ -294,6 +305,12 @@ export default function StArbisUI() {
       <DashboardCard.Title>Arbis Staking</DashboardCard.Title>
 
       <DashboardCard.Subtitle>
+        {state.apr ? (
+          <>
+            <span className="font-extrabold">{state.apr}% APR</span>
+            <span className="text-gray-500 font-light"> | </span>
+          </>
+        ) : null}
         <a
           href={`https://arbiscan.io/address/${farmAddress}`}
           target="_blank"
@@ -314,7 +331,8 @@ export default function StArbisUI() {
           <div className="flex justify-between">
             <strong>TVL:</strong>
             <div className="text-right">
-              {state.totalDeposits} ${state.tokenSymbol}
+              {Math.round(Number(state.totalDeposits)).toLocaleString()} $
+              {state.tokenSymbol}
             </div>
           </div>
 
