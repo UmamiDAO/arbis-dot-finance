@@ -1,14 +1,16 @@
 import React from 'react'
-import axios from 'axios'
 import { formatEther, parseEther } from '@ethersproject/units'
 import { Formik, Form, Field } from 'formik'
 
 import DashboardCard from './DashboardCard'
 import Selector from './Selector'
+
 import useUserAddress from '../hooks/useUserAddress'
 import useUserSigner from '../hooks/useUserSigner'
 import useExternalContractLoader from '../hooks/useExternalContractLoader'
 import useTransaction from '../hooks/useTransaction'
+import useGlobalState from '../hooks/useGlobalState'
+
 import StArbisAddress2 from '../contracts/StArbis2.address'
 import StArbisAbi from '../contracts/StArbis.abi'
 import ERC20Abi from '../contracts/ERC20.abi'
@@ -18,7 +20,7 @@ const Z2O = '0xdb96f8efd6865644993505318cc08ff9c42fb9ac'
 const cheems = '0x75a2f30929c539e7d4ee033c9331b89f879c0cf7'
 const farmAddress = StArbisAddress2
 
-export default function StArbisUI() {
+export default function StArbisFarm() {
   const initState: {
     status: string
     tokenAddress: null | string
@@ -34,7 +36,6 @@ export default function StArbisUI() {
     availableARBIS: null | string | number
     avaiableZ20: null | string | number
     avaiableCheems: null | string | number
-    apr: null | string | number
   } = {
     status: 'idle',
     tokenAddress: null,
@@ -50,7 +51,6 @@ export default function StArbisUI() {
     availableARBIS: null,
     avaiableZ20: null,
     avaiableCheems: null,
-    apr: null,
   }
   const [state, dispatch] = React.useReducer(
     (
@@ -75,7 +75,6 @@ export default function StArbisUI() {
               availableARBIS: null | string | number
               avaiableZ20: null | string | number
               avaiableCheems: null | string | number
-              apr: null | string | number
             }
           }
     ) => {
@@ -102,6 +101,7 @@ export default function StArbisUI() {
   const farmContract = useExternalContractLoader(farmAddress, StArbisAbi)
   const tokenContract = useExternalContractLoader(state.tokenAddress, ERC20Abi)
   const transaction = useTransaction()
+  const [{ horseysauce }] = useGlobalState()
 
   const [action, setAction] = React.useState<string>('deposit')
 
@@ -140,7 +140,6 @@ export default function StArbisUI() {
         rawAvailableARBIS,
         rawAvailableZ20,
         rawAvailableCheems,
-        horseysauce,
       ] = await Promise.all([
         farmContract.arbisToken(),
         tokenContract.balanceOf(userAddress),
@@ -155,7 +154,6 @@ export default function StArbisUI() {
         farmContract.getAvailableTokenRewards(state.tokenAddress),
         farmContract.getAvailableTokenRewards(Z2O),
         farmContract.getAvailableTokenRewards(cheems),
-        axios('https://horseysauce.xyz'),
       ])
 
       const tokenBalance = parseFloat(formatEther(rawTokenBalance)).toFixed(3)
@@ -165,11 +163,6 @@ export default function StArbisUI() {
       const availableARBIS = formatEther(rawAvailableARBIS)
       const avaiableZ20 = formatEther(rawAvailableZ20)
       const avaiableCheems = formatEther(rawAvailableCheems)
-      const {
-        data: {
-          stArbis: { apr },
-        },
-      } = horseysauce
 
       const isApproved = BigInt('0') !== approved
 
@@ -189,7 +182,6 @@ export default function StArbisUI() {
           availableARBIS,
           avaiableZ20,
           avaiableCheems,
-          apr,
         },
       })
     } catch (err) {
@@ -290,6 +282,14 @@ export default function StArbisUI() {
     )
   }, [state])
 
+  const apr = React.useMemo(() => {
+    if (!horseysauce) {
+      return null
+    }
+
+    return horseysauce.stArbis.apr
+  }, [horseysauce])
+
   React.useEffect(() => {
     setTokenAddress()
   }, [setTokenAddress])
@@ -300,14 +300,18 @@ export default function StArbisUI() {
     }
   }, [populateState, state.status])
 
+  if (state.status !== 'resolved') {
+    return null
+  }
+
   return (
     <DashboardCard>
       <DashboardCard.Title>Arbis Staking</DashboardCard.Title>
 
       <DashboardCard.Subtitle>
-        {state.apr ? (
+        {apr ? (
           <>
-            <span className="font-extrabold">{state.apr}% APR</span>
+            <span className="font-extrabold">{apr}% APR</span>
             <span className="text-gray-500 font-light"> | </span>
           </>
         ) : null}

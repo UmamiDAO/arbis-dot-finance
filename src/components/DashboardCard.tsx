@@ -13,7 +13,7 @@ type ActionProps = {
 
 export default function DashboardCard({ children }: RootProps) {
   return (
-    <div className="border-t-4 border-primary py-4 mr-4 w-full last:mr-0 md:w-1/3">
+    <div className="border-t-4 border-primary py-4 mr-8 w-full last:mr-0 md:w-1/3">
       {children}
     </div>
   )

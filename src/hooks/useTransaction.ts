@@ -1,64 +1,63 @@
-import React from 'react';
-import Notify, { API } from 'bnc-notify';
-import { ThemeContext } from 'styled-components';
-import useUserSigner from './useUserSigner';
-import useUserNetwork from './useUserNetwork';
-import { BLOCKNATIVE_DAPPID } from '../config';
+import React from 'react'
+import Notify, { API } from 'bnc-notify'
+import { ThemeContext } from 'styled-components'
+import useUserSigner from './useUserSigner'
+import useUserNetwork from './useUserNetwork'
+
+interface NotifyAPI extends API {}
+
+const notify: NotifyAPI = Notify({
+  darkMode: false,
+})
 
 export default function useTransaction() {
-  const userSigner = useUserSigner();
-  const userNetwork = useUserNetwork();
-  const theme = React.useContext(ThemeContext);
-  const [notify, setNotify] = React.useState<API | null>(null);
+  const userSigner = useUserSigner()
+  const userNetwork = useUserNetwork()
+  const theme = React.useContext(ThemeContext)
 
   const isDarkTheme = React.useMemo(() => {
-    return (theme.color as string).includes('light') || false;
-  }, [theme]);
+    return (theme.color as string).includes('light') || false
+  }, [theme])
 
   const initialize = React.useCallback(() => {
     if (userNetwork === null) {
-      return;
+      return
     }
 
-    setNotify(
-      Notify({
-        dappId: BLOCKNATIVE_DAPPID,
-        system: 'ethereum',
-        networkId: userNetwork.chainId,
-        darkMode: isDarkTheme,
-      })
-    );
-  }, [userNetwork, isDarkTheme]);
+    notify.config({
+      darkMode: isDarkTheme,
+    })
+  }, [userNetwork, isDarkTheme])
 
   React.useEffect(() => {
-    initialize();
-  }, [initialize]);
+    initialize()
+  }, [initialize])
 
   const transaction = React.useCallback(
     async (tx: Promise<any>) => {
       if (userSigner === null || notify === null) {
-        return;
+        return
       }
       try {
-        const { hash } = await tx;
+        const { hash } = await tx
         notify.notification({
           eventCode: 'txRequest',
           type: 'pending',
           message: `Local Transaction Sent ${hash.slice(0, 6)}...`,
           autoDismiss: 5000,
           onclick: () => window.open(`https://arbiscan.io/tx/${hash}`),
-        });
+        })
       } catch (err) {
         notify.notification({
           eventCode: 'txError',
           type: 'error',
           message: (err as Error).message || (err as any).toString(),
           autoDismiss: 5000,
-        });
+        })
       }
     },
-    [notify, userSigner]
-  );
+    [userSigner]
+  )
 
-  return transaction;
+  return transaction
 }
