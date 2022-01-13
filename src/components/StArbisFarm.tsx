@@ -320,7 +320,7 @@ export default function StArbisFarm() {
 
   return (
     <DashboardCard>
-      <DashboardCard.Title>Arbis Staking</DashboardCard.Title>
+      <DashboardCard.Title>Arbis</DashboardCard.Title>
 
       <DashboardCard.Subtitle>
         {apr ? (
@@ -523,12 +523,6 @@ export default function StArbisFarm() {
             <div>$Z20</div>
           </li>
         </ul>
-
-        <p className="text-sm mt-4">
-          There is no rush to collect your rewards, they are reserved for you
-          and will be there when you want to collect them. No one else can touch
-          them.
-        </p>
       </DashboardCard.More>
     </DashboardCard>
   )
