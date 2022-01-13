@@ -1,43 +1,42 @@
-import React from 'react';
-import Portis from '@portis/web3';
-import Fortmatic from 'fortmatic';
-import Authereum from 'authereum';
-import WalletConnectProvider from '@walletconnect/web3-provider';
-import WalletLink from 'walletlink';
-import Web3Modal from 'web3modal';
-import { ThemeContext } from 'styled-components';
-import { INFURA_ID } from '../config';
-import { Core } from 'web3modal/dist/core';
+import React from 'react'
+import Portis from '@portis/web3'
+import Fortmatic from 'fortmatic'
+import Authereum from 'authereum'
+import WalletConnectProvider from '@walletconnect/web3-provider'
+import WalletLink from 'walletlink'
+import Web3Modal from 'web3modal'
+import { ThemeContext } from 'styled-components'
+import { INFURA_ID } from '../config'
+import { Core } from 'web3modal/dist/core'
 
 // Coinbase walletLink init
 const walletLink = new WalletLink({
   appName: 'coinbase',
-});
+})
 
 // WalletLink provider
 const walletLinkProvider = walletLink.makeWeb3Provider(
   `https://mainnet.infura.io/v3/${INFURA_ID}`,
   1
-);
+)
 
 export default function useWeb3Modal() {
-  const theme = React.useContext(ThemeContext);
+  const theme = React.useContext(ThemeContext)
   const isDarkTheme = React.useMemo(() => {
-    return (theme.color as string).includes('light') || false;
-  }, [theme]);
-  const [web3Modal, setWeb3Modal] = React.useState<Core | null>(null);
+    return (theme.color as string).includes('light') || false
+  }, [theme])
+  const [web3Modal, setWeb3Modal] = React.useState<Core | null>(null)
 
   const initialize = React.useCallback(() => {
     setWeb3Modal(
       new Web3Modal({
-        network: 'mainnet',
         cacheProvider: true,
         theme: isDarkTheme ? 'dark' : 'light',
         providerOptions: {
           walletconnect: {
             package: WalletConnectProvider,
             options: {
-              bridge: 'https://polygon.bridge.walletconnect.org',
+              bridge: 'https://bridge.arbitrum.io/',
               infuraId: INFURA_ID,
               rpc: {
                 1: `https://mainnet.infura.io/v3/${INFURA_ID}`,
@@ -71,8 +70,8 @@ export default function useWeb3Modal() {
             },
             package: walletLinkProvider,
             connector: async (provider, options) => {
-              await provider.enable();
-              return provider;
+              await provider.enable()
+              return provider
             },
           },
           authereum: {
@@ -80,12 +79,12 @@ export default function useWeb3Modal() {
           },
         },
       })
-    );
-  }, [isDarkTheme]);
+    )
+  }, [isDarkTheme])
 
   React.useEffect(() => {
-    initialize();
-  }, [initialize]);
+    initialize()
+  }, [initialize])
 
-  return web3Modal;
+  return web3Modal
 }
