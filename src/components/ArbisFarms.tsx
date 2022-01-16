@@ -3,6 +3,7 @@ import React from 'react'
 import UIWrapper from './UIWrapper'
 import StArbisFarm from './StArbisFarm'
 import StArbisEthSushiFarm from './StArbisEthSushiFarm'
+import CheemsEthOldFarm from './CheemsEthOldFarm'
 
 // TODO make card for each farm
 
@@ -49,27 +50,10 @@ import StArbisEthSushiFarm from './StArbisEthSushiFarm'
 export default function ArbisFarms() {
   return (
     <UIWrapper>
-      <div className="mt-4 max-w-3xl">
-        <ul className="list-disc p-4 text-sm ml-4">
-          <li>
-            10% early withdrawal fee on any withdrawal amount which decays
-            linearly to 0 over 7 days since any last deposit
-          </li>
-          <li className="mt-2">
-            95% of the resulting fee is redistributed to stakers
-          </li>
-          <li className="mt-2">5% of the resulting fee goes to the treasury</li>
-        </ul>
-        <p className="text-sm mt-4">
-          There is no rush to collect your rewards, they are reserved for you
-          and will be there when you want to collect them. No one else can touch
-          them.
-        </p>
-      </div>
-
-      <div className="mt-8 flex flex-wrap">
+      <div className="mt-8 flex flex-wrap lg:flex-nowrap">
         <StArbisFarm />
         <StArbisEthSushiFarm />
+        <CheemsEthOldFarm />
       </div>
     </UIWrapper>
   )

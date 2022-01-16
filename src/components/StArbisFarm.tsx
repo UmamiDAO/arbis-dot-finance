@@ -19,6 +19,8 @@ import ERC20Abi from '../contracts/ERC20.abi'
 const wETH = '0x82af49447d8a07e3bd95bd0d56f35241523fbab1'
 const Z2O = '0xdb96f8efd6865644993505318cc08ff9c42fb9ac'
 const cheems = '0x75a2f30929c539e7d4ee033c9331b89f879c0cf7'
+const umami = '0x1622bF67e6e5747b81866fE0b85178a93C7F86e3'
+
 const farmAddress = StArbisAddress2
 
 export default function StArbisFarm() {
@@ -37,6 +39,7 @@ export default function StArbisFarm() {
     availableARBIS: null | string | number
     avaiableZ20: null | string | number
     avaiableCheems: null | string | number
+    avaiableUmami: null | string | number
   } = {
     status: 'idle',
     tokenAddress: null,
@@ -52,6 +55,7 @@ export default function StArbisFarm() {
     availableARBIS: null,
     avaiableZ20: null,
     avaiableCheems: null,
+    avaiableUmami: null,
   }
   const [state, dispatch] = React.useReducer(
     (
@@ -76,6 +80,7 @@ export default function StArbisFarm() {
               availableARBIS: null | string | number
               avaiableZ20: null | string | number
               avaiableCheems: null | string | number
+              avaiableUmami: null | string | number
             }
           }
     ) => {
@@ -141,6 +146,7 @@ export default function StArbisFarm() {
         rawAvailableARBIS,
         rawAvailableZ20,
         rawAvailableCheems,
+        rawAvailableUmami,
       ] = await Promise.all([
         farmContract.arbisToken(),
         tokenContract.balanceOf(userAddress),
@@ -155,6 +161,7 @@ export default function StArbisFarm() {
         farmContract.getAvailableTokenRewards(state.tokenAddress),
         farmContract.getAvailableTokenRewards(Z2O),
         farmContract.getAvailableTokenRewards(cheems),
+        farmContract.getAvailableTokenRewards(umami),
       ])
 
       const tokenBalance = parseFloat(formatEther(rawTokenBalance))
@@ -164,6 +171,7 @@ export default function StArbisFarm() {
       const availableARBIS = formatEther(rawAvailableARBIS)
       const avaiableZ20 = formatEther(rawAvailableZ20)
       const avaiableCheems = formatEther(rawAvailableCheems)
+      const avaiableUmami = formatEther(rawAvailableUmami)
 
       const isApproved = !BigNumber.from('0').eq(approved)
 
@@ -183,6 +191,7 @@ export default function StArbisFarm() {
           availableARBIS,
           avaiableZ20,
           avaiableCheems,
+          avaiableUmami,
         },
       })
     } catch (err) {
@@ -291,6 +300,7 @@ export default function StArbisFarm() {
 
   const allRewards = React.useMemo(() => {
     return (
+      Number(state.avaiableUmami) +
       Number(state.avaiableCheems) +
       Number(state.avaiableZ20) +
       Number(state.availableARBIS) +
@@ -360,6 +370,21 @@ export default function StArbisFarm() {
           </div>
         </div>
 
+        <div className="mt-2">
+          <ul className="list-disc p-2 text-xs ml-2">
+            <li>
+              10% early withdrawal fee on any withdrawal amount which decays
+              linearly to 0 over 7 days since any last deposit
+            </li>
+            <li className="mt-2">
+              95% of the resulting fee is redistributed to stakers
+            </li>
+            <li className="mt-2">
+              5% of the resulting fee goes to the treasury
+            </li>
+          </ul>
+        </div>
+
         <div className="mt-4">
           <Selector>
             {['deposit', 'withdraw'].map((option) => (
@@ -412,7 +437,9 @@ export default function StArbisFarm() {
                           state.isApproved ? handleSubmit : handleApproval
                         }
                         color="white"
-                        disabled={!Number(values.depositAmount)}
+                        disabled={
+                          !Number(values.depositAmount) && !state.isApproved
+                        }
                       >
                         {state.isApproved ? (
                           <>
@@ -470,7 +497,9 @@ export default function StArbisFarm() {
                     <DashboardCard.Action
                       onClick={state.isApproved ? handleSubmit : handleApproval}
                       color="white"
-                      disabled={!Number(values.withdrawAmount)}
+                      disabled={
+                        !Number(values.withdrawAmount) && !state.isApproved
+                      }
                     >
                       {state.isApproved ? (
                         <>
@@ -508,19 +537,23 @@ export default function StArbisFarm() {
         <ul>
           <li className="flex justify-between">
             <div>{state.availableARBIS}</div>
-            <div>$ARBIS</div>
+            <div>ARBIS</div>
           </li>
           <li className="flex justify-between">
             <div>{state.availableWETH}</div>
-            <div>$WETH</div>
+            <div>WETH</div>
           </li>
           <li className="flex justify-between">
             <div>{state.avaiableCheems}</div>
-            <div>$CHEEMS</div>
+            <div>CHEEMS</div>
+          </li>
+          <li className="flex justify-between">
+            <div>{state.avaiableUmami}</div>
+            <div>UMAMI</div>
           </li>
           <li className="flex justify-between">
             <div>{state.avaiableZ20}</div>
-            <div>$Z20</div>
+            <div>Z20</div>
           </li>
         </ul>
       </DashboardCard.More>

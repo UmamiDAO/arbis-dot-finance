@@ -6,140 +6,125 @@ import { Formik, Form, Field } from 'formik'
 import DashboardCard from './DashboardCard'
 import Selector from './Selector'
 
-import useGlobalState from '../hooks/useGlobalState'
 import useUserAddress from '../hooks/useUserAddress'
 import useUserSigner from '../hooks/useUserSigner'
 import useExternalContractLoader from '../hooks/useExternalContractLoader'
 import useTransaction from '../hooks/useTransaction'
+import useGlobalState from '../hooks/useGlobalState'
 
-import StArbisEthLPAddress from '../contracts/stARBISETHLP.address'
-import StArbisAbi from '../contracts/StArbis.abi'
+import CHEEMSETHStrategyAddress from '../contracts/CHEEMSETHStrategy.address'
+import NYANEthStrategyABI from '../contracts/NyanETHStrategy.abi'
 import ERC20Abi from '../contracts/ERC20.abi'
 
-const umami = '0x1622bF67e6e5747b81866fE0b85178a93C7F86e3'
-const Z2O = '0xdb96f8efd6865644993505318cc08ff9c42fb9ac'
+const farmAddress = CHEEMSETHStrategyAddress
 
-const farmAddress = StArbisEthLPAddress
-
-export default function StArbisEthSushiFarm() {
-  const [{ horseysauce }] = useGlobalState()
-  const [tokenAddr, setTokenAddr] = React.useState<string | null>(null)
-
-  const userAddress = useUserAddress()
-  const userSigner = useUserSigner()
-  const transaction = useTransaction()
-
-  const tokenContract = useExternalContractLoader(tokenAddr, ERC20Abi)
-  const farmContract = useExternalContractLoader(farmAddress, StArbisAbi)
-
+export default function CheemsEthOldFarm() {
   const initState: {
-    initialized: boolean
-    tokenBalance: null | string | number
-    tokenSymbol: null | string | number
-    tokenTotalSupply: null | string | number
-    isApproved: boolean
-    name: null | string | number
-    symbol: null | string | number
-    totalDeposits: null | string | number
-    shareBalance: null | string | number
-    availableUmami: null | string | number
-    availableARBIS: null | string | number
-    avaiableZ20: null | string | number
+    [k: string]: string | number | boolean | null
   } = {
-    initialized: false,
     tokenBalance: null,
+    tokenName: null,
     tokenSymbol: null,
     tokenTotalSupply: null,
     isApproved: false,
-    name: null,
-    symbol: null,
-    totalDeposits: null,
-    shareBalance: null,
-    availableUmami: null,
-    availableARBIS: null,
-    avaiableZ20: null,
+    farmName: null,
+    farmReward: null,
+    farmSymbol: null,
+    farmTotalDeposits: null,
+    farmTokensPerShare: null,
+    farmUnderlyingTokensAvailable: null,
+    isInitialized: false,
   }
-
   const [state, setState] = React.useState(initState)
-  const [action, setAction] = React.useState<string>('deposit')
+  const [tokenAddr, setTokenAddr] = React.useState<string | null>(null)
+  const [action, setAction] = React.useState<'deposit' | 'withdraw'>('deposit')
 
-  const handleTokenAddr = React.useCallback(async () => {
-    if (!farmContract || tokenAddr) {
-      return
+  const [{ horseysauce }] = useGlobalState()
+  const userAddress = useUserAddress()
+  const userSigner = useUserSigner()
+  const transaction = useTransaction()
+  const farmContract = useExternalContractLoader(
+    farmAddress,
+    NYANEthStrategyABI
+  )
+  const tokenContract = useExternalContractLoader(tokenAddr, ERC20Abi)
+
+  const totalValueStaked = React.useMemo(() => {
+    if (!horseysauce) {
+      return null
     }
 
+    return (
+      horseysauce.strategies.find((strat) => strat.address === farmAddress)
+        ?.totalValueStaked || null
+    )
+  }, [horseysauce])
+
+  const handleTokenAddr = React.useCallback(async () => {
+    if (!farmContract) {
+      return
+    }
     try {
-      const addr = await farmContract.arbisToken()
+      const addr = await farmContract.depositToken()
       setTokenAddr(addr)
     } catch (err) {
       console.log(err)
     }
-  }, [farmContract, tokenAddr])
+  }, [farmContract])
 
   const handleState = React.useCallback(async () => {
-    if (!tokenContract || !farmContract || !tokenAddr) {
+    if (!tokenAddr || !farmContract || !tokenContract || !userAddress) {
       return
     }
-
     try {
       const [
-        rawTokenBalance,
+        tokenBalance,
+        tokenName,
         tokenSymbol,
         tokenTotalSupply,
         approved,
-        name,
-        symbol,
-        rawTotalDeposits,
-        rawShareBalance,
-        rawAvailableUmami,
-        rawAvailableARBIS,
-        rawAvailableZ20,
+        farmName,
+        farmReward,
+        farmSymbol,
+        farmTotalDeposits,
+        farmTokensPerShare,
+        shareBalance,
       ] = await Promise.all([
         tokenContract.balanceOf(userAddress),
+        tokenContract.name(),
         tokenContract.symbol(),
         tokenContract.totalSupply(),
         tokenContract.allowance(userAddress, farmAddress),
         farmContract.name(),
+        farmContract.checkReward(),
         farmContract.symbol(),
-        farmContract.totalSupply(),
+        farmContract.totalDeposits(),
+        farmContract.getDepositTokensForShares(BigInt(1000000000000000000)),
         farmContract.balanceOf(userAddress),
-        farmContract.getAvailableTokenRewards(umami),
-        farmContract.getAvailableTokenRewards(tokenAddr),
-        farmContract.getAvailableTokenRewards(Z2O),
       ])
 
-      const tokenBalance = parseFloat(formatEther(rawTokenBalance))
-      const totalDeposits = parseFloat(formatEther(rawTotalDeposits))
-      const shareBalance = parseFloat(formatEther(rawShareBalance))
-      const availableUmami = formatEther(rawAvailableUmami)
-      const availableARBIS = formatEther(rawAvailableARBIS)
-      const avaiableZ20 = formatEther(rawAvailableZ20)
-
-      const isApproved = !BigNumber.from('0').eq(approved)
+      const farmUnderlyingTokensAvailable =
+        await farmContract.getDepositTokensForShares(shareBalance || 0)
+      const isApproved = !BigNumber.from('0') === approved
 
       setState({
-        initialized: true,
         tokenBalance,
+        tokenName,
         tokenSymbol,
-        totalDeposits,
         tokenTotalSupply,
-        name,
-        symbol,
-        shareBalance,
         isApproved,
-        availableUmami,
-        availableARBIS,
-        avaiableZ20,
+        farmName,
+        farmReward,
+        farmSymbol,
+        farmTotalDeposits: formatEther(farmTotalDeposits),
+        farmTokensPerShare: formatEther(farmTokensPerShare),
+        farmUnderlyingTokensAvailable,
+        isInitialized: true,
       })
     } catch (err) {
       console.log(err)
     }
-  }, [farmContract, tokenAddr, tokenContract, userAddress])
-
-  const initialize = React.useCallback(() => {
-    handleTokenAddr()
-    handleState()
-  }, [handleTokenAddr, handleState])
+  }, [tokenAddr, farmContract, tokenContract, userAddress])
 
   const handleDeposit = React.useCallback(
     async ({ depositAmount }, { resetForm }) => {
@@ -217,57 +202,24 @@ export default function StArbisEthSushiFarm() {
     }
   }, [userSigner, tokenContract, state, transaction, handleState, tokenAddr])
 
-  const handleCollect = React.useCallback(async () => {
-    if (!state.isApproved || !userSigner || !farmContract) {
-      return
-    }
-
-    try {
-      const data = await farmContract.interface.encodeFunctionData(
-        'collectRewards',
-        []
-      )
-      transaction(userSigner.sendTransaction({ to: farmAddress, data } as any))
-    } catch (err) {
-      console.log(err)
-    }
-  }, [state.isApproved, userSigner, transaction, farmContract])
-
-  const apr = React.useMemo(() => {
-    if (!horseysauce) {
-      return null
-    }
-
-    return horseysauce.stArbisEth.apr
-  }, [horseysauce])
-
-  const allRewards = React.useMemo(() => {
-    return (
-      Number(state.avaiableZ20) +
-      Number(state.availableARBIS) +
-      Number(state.availableUmami)
-    )
-  }, [state])
+  const initialize = React.useCallback(() => {
+    handleTokenAddr()
+    handleState()
+  }, [handleTokenAddr, handleState])
 
   React.useEffect(() => {
     initialize()
   }, [initialize])
 
-  if (!state.initialized) {
+  if (!state.isInitialized) {
     return null
   }
 
   return (
     <DashboardCard>
-      <DashboardCard.Title>ARBIS/ETH Sushi LP</DashboardCard.Title>
+      <DashboardCard.Title>Cheems/ETH (OLD)</DashboardCard.Title>
 
       <DashboardCard.Subtitle>
-        {apr ? (
-          <>
-            <span className="font-extrabold">{apr}% APR</span>
-            <span className="text-gray-500 font-light"> | </span>
-          </>
-        ) : null}
         <a
           href={`https://arbiscan.io/address/${farmAddress}`}
           target="_blank"
@@ -280,7 +232,8 @@ export default function StArbisEthSushiFarm() {
 
       <DashboardCard.Content>
         <p className="mt-4">
-          Stake your ${state.tokenSymbol} for ${state.name} to earn passive $Z20
+          Stake your ${state.tokenSymbol} for ${state.tokenName} to earn passive
+          ${state.farmSymbol}
           generated by fees from all around the Arbi's food court automatically!
         </p>
 
@@ -288,28 +241,29 @@ export default function StArbisEthSushiFarm() {
           <div className="flex justify-between">
             <strong>TVL:</strong>
             <div className="text-right">
-              {Math.round(Number(state.totalDeposits)).toLocaleString()} $
-              {state.tokenSymbol}
+              {Number(state.farmTotalDeposits) ? (
+                <>
+                  {parseFloat(String(state.farmTotalDeposits)).toLocaleString()}
+                  <span> ${state.tokenSymbol}</span>
+                </>
+              ) : null}
+              {Number(totalValueStaked) ? (
+                <>
+                  <span> === </span>
+                  <span>
+                    ${Number(totalValueStaked).toLocaleString('en-us')}
+                  </span>
+                </>
+              ) : null}
             </div>
           </div>
 
           <div className="flex justify-between">
-            <strong>1 ${state.symbol}:</strong>
-            <div className="text-right">1 ${state.tokenSymbol}</div>
+            <strong>1 ${state.farmSymbol}:</strong>
+            <div className="text-right">
+              {Number(state.farmTokensPerShare).toFixed(3)} ${state.tokenSymbol}
+            </div>
           </div>
-        </div>
-
-        <div className="mt-2">
-          <ul className="list-disc text-xs ml-2 p-2">
-            <li>
-              If you deposited in the last 7 days a 10% early withdraw fee will
-              be charged to the amount you are withdrawing.
-            </li>
-            <li className="mt-2">
-              When you withdraw any pending Tokens will be paid out to your
-              address automatically.
-            </li>
-          </ul>
         </div>
 
         <div className="mt-4">
@@ -318,7 +272,7 @@ export default function StArbisEthSushiFarm() {
               <Selector.Item
                 key={option}
                 text={option}
-                onClick={() => setAction(option)}
+                onClick={() => setAction(option as 'deposit' | 'withdraw')}
                 selected={option === action}
               />
             ))}
@@ -364,7 +318,10 @@ export default function StArbisEthSushiFarm() {
                           state.isApproved ? handleSubmit : handleApproval
                         }
                         color="white"
-                        disabled={!Number(values.depositAmount)}
+                        disabled={
+                          !Number(values.depositAmount) &&
+                          Boolean(state.isApproved)
+                        }
                       >
                         {state.isApproved ? (
                           <>
@@ -401,12 +358,12 @@ export default function StArbisEthSushiFarm() {
                       onClick={() =>
                         setFieldValue(
                           'withdrawAmount',
-                          Number(state.shareBalance).toFixed(9)
+                          Number(state.farmUnderlyingTokensAvailable).toFixed(9)
                         )
                       }
                       className="text-primary"
                     >
-                      {Number(state.shareBalance).toFixed(3)}
+                      {Number(state.farmUnderlyingTokensAvailable).toFixed(3)}
                     </button>
                     <span> ${state.tokenSymbol}</span>
                   </div>
@@ -422,7 +379,10 @@ export default function StArbisEthSushiFarm() {
                     <DashboardCard.Action
                       onClick={state.isApproved ? handleSubmit : handleApproval}
                       color="white"
-                      disabled={!Number(values.withdrawAmount)}
+                      disabled={
+                        !Number(values.withdrawAmount) &&
+                        Boolean(state.isApproved)
+                      }
                     >
                       {state.isApproved ? (
                         <>
@@ -442,36 +402,7 @@ export default function StArbisEthSushiFarm() {
             </Formik>
           </div>
         ) : null}
-
-        <div className="mt-4">
-          <DashboardCard.Action
-            color="black"
-            disabled={!state.isApproved || !allRewards}
-            onClick={() => handleCollect()}
-          >
-            Collect All
-          </DashboardCard.Action>
-        </div>
       </DashboardCard.Content>
-
-      <DashboardCard.More>
-        <strong>Current Reward(s):</strong>
-
-        <ul>
-          <li className="flex justify-between">
-            <div>{state.availableARBIS}</div>
-            <div>ARBIS/ETH LP</div>
-          </li>
-          <li className="flex justify-between">
-            <div>{state.availableUmami}</div>
-            <div>UMAMI</div>
-          </li>
-          <li className="flex justify-between">
-            <div>{state.avaiableZ20}</div>
-            <div>Z20</div>
-          </li>
-        </ul>
-      </DashboardCard.More>
     </DashboardCard>
   )
 }
