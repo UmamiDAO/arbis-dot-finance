@@ -36,7 +36,11 @@ export default function Farms() {
         </Selector>
       </nav>
 
-      {token === 'arbis' ? <ArbisFarms /> : null}
+      {token === 'arbis' ? <ArbisFarms /> : (
+        <section className="flex items-center justify-center h-64">
+          <h2 className="text-center text-3xl font-extra-bold">Coming Soon</h2>
+        </section>
+      )}
     </main>
   )
 }

@@ -25,6 +25,7 @@
     "formik": "^2.2.9",
     "fortmatic": "^2.2.1",
     "js-cookie": "^3.0.1",
+    "keen-slider": "^6.6.3",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-router-dom": "^6.0.1",

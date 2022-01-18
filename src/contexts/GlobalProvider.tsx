@@ -7,8 +7,6 @@ import GlobalContext, {
   initState,
 } from './GlobalContext'
 
-import usePoller from '../hooks/usePoller'
-
 const { Provider } = GlobalContext
 
 type Props = {
@@ -40,7 +38,11 @@ export default function GlobalProvider({ children }: Props) {
     }
   }, [dispatch])
 
-  usePoller(fetchAPIData, 60000)
+  React.useEffect(() => {
+    if (!state.horseysauce) {
+      fetchAPIData()
+    }
+  }, [fetchAPIData, state])
 
   return <Provider value={{ state, dispatch }}>{children}</Provider>
 }

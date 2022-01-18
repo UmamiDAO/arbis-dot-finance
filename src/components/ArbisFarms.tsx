@@ -1,59 +1,81 @@
 import React from 'react'
+import { useKeenSlider } from 'keen-slider/react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCaretLeft, faCaretRight } from '@fortawesome/free-solid-svg-icons'
 
 import UIWrapper from './UIWrapper'
 import StArbisFarm from './StArbisFarm'
 import StArbisEthSushiFarm from './StArbisEthSushiFarm'
 import CheemsEthOldFarm from './CheemsEthOldFarm'
-
-// TODO make card for each farm
-
-// import stARBISETHLPAddress from '../contracts/stARBISETHLP.address';
-// import CHEEMSETHStrategyAddress from '../contracts/CHEEMSETHStrategy.address';
-
-/* const farms = [
-  {
-    id: 'st[ARBIS/ETH] SUSHI LP',
-    address: stARBISETHLPAddress,
-    name: 'ARBIS/ETH Sushi LP',
-    earn: 'Z2O',
-    isLP: true,
-    specialWarning: (
-      <>
-        You can get this LP token on{' '}
-        <a href="https://app.sushi.com/add/ETH/0x9f20de1fc9b161b34089cbEAE888168B44b03461">Sushi</a>
-      </>
-    ),
-    hideDeposit: false,
-  },
-  {
-    id: 'CHEEMS/ETH (old)',
-    name: 'CHEEMS/ETH (old)',
-    address: CHEEMSETHStrategyAddress,
-    earn: null,
-    // zapper is not working zapperAddress: ARBISETHSwaprZapperAddress
-    specialWarning: <>This pool is no longer compounding please move to the new one</>,
-    isLP: false,
-    hideDeposit: false,
-  },
-  {
-    id: 'CHEEMS/ETH 2',
-    name: 'CHEEMS/ETH 2',
-    address: '0xc5d444bB53DA60574Dd272Ebab609Efa6a483c57',
-    earn: null,
-    // zapper is not working zapperAddress: ARBISETHSwaprZapperAddress
-    isLP: false,
-    specialWarning: null,
-    hideDeposit: false,
-  },
-]; */
+import CheemsEth2Farm from './CheemsEth2Farm'
 
 export default function ArbisFarms() {
+  const [isInitPosition, setInitPosition] = React.useState<boolean>(true)
+  const [isLastPosition, setLastPosition] = React.useState<boolean>(false)
+
+  const [sliderRef, slider] = useKeenSlider({
+    breakpoints: {
+      '(max-width: 768px)': {
+        slides: { perView: 1, origin: 'center' },
+        vertical: true,
+        selector: null,
+      },
+    },
+    slides: { perView: 3, spacing: 10 },
+    slideChanged() {
+      // @ts-ignore
+      setInitPosition(!Boolean(slider.current.track.details.rel))
+      if (
+        // @ts-ignore
+        slider.current.track.details.abs === 1
+      ) {
+        setLastPosition(true)
+      } else {
+        setLastPosition(false)
+      }
+    },
+  })
+
   return (
     <UIWrapper>
-      <div className="mt-8 flex flex-wrap lg:flex-nowrap">
-        <StArbisFarm />
-        <StArbisEthSushiFarm />
-        <CheemsEthOldFarm />
+      <div className="relative">
+        {slider ? (
+          <div
+            className="hidden absolute left-0 right-0 lg:flex lg:items-center lg:justify-between lg:mt-4 lg:-mx-8"
+            style={{ top: '0.5rem' }}
+          >
+            <button
+              type="button"
+              onClick={() => slider?.current?.prev()}
+              disabled={isInitPosition}
+              className={isInitPosition ? 'opacity-0 pointer-events-none' : ''}
+            >
+              <FontAwesomeIcon icon={faCaretLeft} size="2x" />
+            </button>
+            <button
+              type="button"
+              onClick={() => slider?.current?.next()}
+              disabled={isLastPosition}
+              className={isLastPosition ? 'opacity-0 pointer-events-none' : ''}
+            >
+              <FontAwesomeIcon icon={faCaretRight} size="2x" />
+            </button>
+          </div>
+        ) : null}
+        <div ref={sliderRef} className="mt-8 keen-slider">
+          <div className="keen-slider__slide">
+            <StArbisFarm />
+          </div>
+          <div className="keen-slider__slide">
+            <StArbisEthSushiFarm />
+          </div>
+          <div className="keen-slider__slide">
+            <CheemsEth2Farm />
+          </div>
+          <div className="keen-slider__slide">
+            <CheemsEthOldFarm />
+          </div>
+        </div>
       </div>
     </UIWrapper>
   )

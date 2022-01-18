@@ -148,7 +148,7 @@ export default function StArbisEthSushiFarm() {
       }
 
       try {
-        const amount = parseEther(String(Number(depositAmount).toFixed(6)))
+        const amount = parseEther(String(Number(depositAmount).toFixed(9)))
         const data = farmContract.interface.encodeFunctionData('stake', [
           amount,
         ])
@@ -160,7 +160,7 @@ export default function StArbisEthSushiFarm() {
         setTimeout(() => {
           resetForm()
           handleState()
-        }, 4000)
+        }, 10000)
       }
     },
     [state.isApproved, farmContract, userSigner, transaction, handleState]
@@ -173,7 +173,7 @@ export default function StArbisEthSushiFarm() {
       }
 
       try {
-        const amount = parseEther(String(Number(withdrawAmount).toFixed(6)))
+        const amount = parseEther(String(Number(withdrawAmount).toFixed(9)))
         const data = farmContract.interface.encodeFunctionData('withdraw', [
           amount,
         ])
@@ -185,7 +185,7 @@ export default function StArbisEthSushiFarm() {
         setTimeout(() => {
           resetForm()
           handleState()
-        }, 4000)
+        }, 10000)
       }
     },
     [state.isApproved, farmContract, userSigner, transaction, handleState]
@@ -213,7 +213,7 @@ export default function StArbisEthSushiFarm() {
     } finally {
       setTimeout(() => {
         handleState()
-      }, 4000)
+      }, 10000)
     }
   }, [userSigner, tokenContract, state, transaction, handleState, tokenAddr])
 
@@ -364,7 +364,9 @@ export default function StArbisEthSushiFarm() {
                           state.isApproved ? handleSubmit : handleApproval
                         }
                         color="white"
-                        disabled={!Number(values.depositAmount)}
+                        disabled={
+                          !Number(values.depositAmount) && state.isApproved
+                        }
                       >
                         {state.isApproved ? (
                           <>
@@ -422,7 +424,9 @@ export default function StArbisEthSushiFarm() {
                     <DashboardCard.Action
                       onClick={state.isApproved ? handleSubmit : handleApproval}
                       color="white"
-                      disabled={!Number(values.withdrawAmount)}
+                      disabled={
+                        !Number(values.withdrawAmount) && state.isApproved
+                      }
                     >
                       {state.isApproved ? (
                         <>

@@ -6,7 +6,7 @@ import useUserNetwork from './useUserNetwork'
 
 interface NotifyAPI extends API {}
 
-const notify: NotifyAPI = Notify({
+export const notify: NotifyAPI = Notify({
   darkMode: false,
 })
 

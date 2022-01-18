@@ -207,7 +207,7 @@ export default function StArbisFarm() {
       }
 
       try {
-        const amount = parseEther(String(Number(depositAmount).toFixed(6)))
+        const amount = parseEther(String(Number(depositAmount).toFixed(9)))
         const data = await farmContract.interface.encodeFunctionData('stake', [
           amount,
         ])
@@ -219,7 +219,7 @@ export default function StArbisFarm() {
         setTimeout(() => {
           resetForm()
           populateState()
-        }, 5000)
+        }, 10000)
       }
     },
     [state.isApproved, farmContract, userSigner, transaction, populateState]
@@ -232,7 +232,7 @@ export default function StArbisFarm() {
       }
 
       try {
-        const amount = parseEther(String(Number(withdrawAmount).toFixed(6)))
+        const amount = parseEther(String(Number(withdrawAmount).toFixed(9)))
         const data = await farmContract.interface.encodeFunctionData(
           'withdraw',
           [amount]
@@ -248,7 +248,7 @@ export default function StArbisFarm() {
         setTimeout(() => {
           resetForm()
           populateState()
-        }, 5000)
+        }, 10000)
       }
     },
     [state.isApproved, farmContract, userSigner, transaction, populateState]
@@ -276,7 +276,7 @@ export default function StArbisFarm() {
     } finally {
       setTimeout(() => {
         populateState()
-      }, 4000)
+      }, 10000)
     }
   }, [userSigner, tokenContract, state, transaction, populateState])
 
@@ -316,13 +316,18 @@ export default function StArbisFarm() {
     return horseysauce.stArbis.apr
   }, [horseysauce])
 
-  React.useEffect(() => {
-    setTokenAddress()
-  }, [setTokenAddress])
+  const initialize = React.useCallback(() => {
+    if (state.status === 'idle') {
+      setTokenAddress()
+    }
+    if (state.status === 'pending') {
+      populateState()
+    }
+  }, [setTokenAddress, populateState, state])
 
   React.useEffect(() => {
-    populateState()
-  }, [populateState])
+    initialize()
+  }, [initialize])
 
   if (state.status !== 'resolved') {
     return null
@@ -438,7 +443,7 @@ export default function StArbisFarm() {
                         }
                         color="white"
                         disabled={
-                          !Number(values.depositAmount) && !state.isApproved
+                          !Number(values.depositAmount) && state.isApproved
                         }
                       >
                         {state.isApproved ? (
@@ -498,7 +503,7 @@ export default function StArbisFarm() {
                       onClick={state.isApproved ? handleSubmit : handleApproval}
                       color="white"
                       disabled={
-                        !Number(values.withdrawAmount) && !state.isApproved
+                        !Number(values.withdrawAmount) && state.isApproved
                       }
                     >
                       {state.isApproved ? (

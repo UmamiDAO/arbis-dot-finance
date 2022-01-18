@@ -13,8 +13,10 @@ type ActionProps = {
 
 export default function DashboardCard({ children }: RootProps) {
   return (
-    <div className="border-t-4 border-primary py-4 mr-8 w-full last:mr-0 lg:flex-1 lg:max-w-sm">
-      {children}
+    <div className="pr-4 last:pr-0 w-full">
+      <div className="border-t-4 border-primary py-4 lg:text-sm">
+        {children}
+      </div>
     </div>
   )
 }
@@ -52,7 +54,7 @@ function Action({ children, color, onClick, disabled }: ActionProps) {
         disabled ? '50' : '100'
       } cursor-${
         disabled ? 'not-allowed' : 'pointer'
-      } uppercase font-display font-extrabold p-4 rounded w-full mr-4 text-lg last:mr-0`}
+      } uppercase font-display font-extrabold p-4 rounded w-full mr-4 text-lg md:text-base last:mr-0`}
       type="button"
       onClick={onClick}
       disabled={disabled}

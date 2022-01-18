@@ -1,13 +1,18 @@
 import React from 'react'
 import axios from 'axios'
 import { formatEther } from '@ethersproject/units'
+import { useNavigate } from 'react-router-dom'
+
 import UIWrapper from './UIWrapper'
 import DashboardCard from './DashboardCard'
 import useExternalContractLoader from '../hooks/useExternalContractLoader'
 import NyanRewardsContractAbi from '../contracts/NyanRewardsContract.abi'
+
 import { STAKING_POOL_ADDRESSES } from '../config'
 
 export default function Home() {
+  const navigate = useNavigate()
+
   const initState: {
     status: string
     arbisPrice: string
@@ -101,14 +106,18 @@ export default function Home() {
           </h1>
         </header>
 
-        <section className="mt-12">
+        <section className="mt-12 lg:w-1/3">
           <DashboardCard>
             <DashboardCard.Title>$ARBIS</DashboardCard.Title>
 
-            {/* TODO make this dynamic */}
-            <DashboardCard.Subtitle>
-              38.08% APR in past 7 days💰
-            </DashboardCard.Subtitle>
+            {0 ? (
+              <>
+                {/* TODO make this dynamic */}
+                <DashboardCard.Subtitle>
+                  38.08% APR in past 7 days💰
+                </DashboardCard.Subtitle>
+              </>
+            ) : null}
 
             <DashboardCard.Content>
               <div className="flex w-full justify-between mt-4">
@@ -139,11 +148,18 @@ export default function Home() {
               </div>
 
               <div className="mt-4 flex justify-between">
-                <DashboardCard.Action color="white" onClick={() => {}}>
-                  buy & stake
-                </DashboardCard.Action>
+                {0 ? (
+                  <DashboardCard.Action color="white" onClick={() => {}}>
+                    buy & stake
+                  </DashboardCard.Action>
+                ) : null}
 
-                <DashboardCard.Action color="black" onClick={() => {}}>
+                <DashboardCard.Action
+                  color="black"
+                  onClick={() =>
+                    navigate('/farms', { state: { token: 'arbis' } })
+                  }
+                >
                   farm
                 </DashboardCard.Action>
               </div>
@@ -151,9 +167,14 @@ export default function Home() {
 
             <DashboardCard.More>
               <div className="w-full text-center">
-                <button type="button" className="font-bold text-gray-400">
+                <a
+                  href="https://curlyfries.xyz"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-bold text-gray-400"
+                >
                   + View all $ARBIS stats
-                </button>
+                </a>
               </div>
             </DashboardCard.More>
           </DashboardCard>

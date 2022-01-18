@@ -1,12 +1,12 @@
-import React from 'react';
-import styled from 'styled-components';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSun, faMoon } from '@fortawesome/free-solid-svg-icons';
+import React from 'react'
+import styled from 'styled-components'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faSun, faMoon } from '@fortawesome/free-solid-svg-icons'
 
 type Props = {
-  theme: 'light' | 'dark';
-  changeTheme: () => void;
-};
+  theme: 'light' | 'dark'
+  changeTheme: () => void
+}
 
 const ThemeSwitcherStyles = styled.aside`
   --spacing: 0.5rem;
@@ -14,7 +14,7 @@ const ThemeSwitcherStyles = styled.aside`
   position: fixed;
   bottom: var(--spacing);
   right: var(--spacing);
-`;
+`
 
 export default function ThemeSwitcher({ theme, changeTheme }: Props) {
   return (
@@ -40,5 +40,5 @@ export default function ThemeSwitcher({ theme, changeTheme }: Props) {
         </div>
       </div>
     </ThemeSwitcherStyles>
-  );
+  )
 }
