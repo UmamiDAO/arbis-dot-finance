@@ -4,18 +4,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCaretLeft, faCaretRight } from '@fortawesome/free-solid-svg-icons'
 
 import UIWrapper from './UIWrapper'
-import {sushiFarms} from '../FarmLists'
-import StArbisFarm from './StArbisFarm'
-import StArbisEthSushiFarm from './StArbisEthSushiFarm'
-import CheemsEthOldFarm from './CheemsEthOldFarm'
-import CheemsEth2Farm from './CheemsEth2Farm'
-import SushiFarm from "./SushiFarm"
-import { setConstantValue } from 'typescript'
+import { sushiFarms } from '../FarmLists'
+import SushiFarm from './SushiFarm'
 
 export default function SushiFarms() {
   const [isInitPosition, setInitPosition] = React.useState<boolean>(true)
   const [isLastPosition, setLastPosition] = React.useState<boolean>(false)
-  const [loaded, setLoaded] = React.useState<boolean>(false)
 
   const [sliderRef, slider] = useKeenSlider({
     breakpoints: {
@@ -25,34 +19,43 @@ export default function SushiFarms() {
         selector: null,
       },
     },
-    range: {max: 5},
-    slides: { perView: 5, spacing: 10 },
-    slideChanged() {
-      // @ts-ignore
-      setInitPosition(!Boolean(slider.current.track.details.rel))
-      if (
-        // @ts-ignore
-        slider.current.track.details.abs === 1
-      ) {
-        setLastPosition(true)
-      } else {
-        setLastPosition(false)
-      }
+    slides: { perView: 3, spacing: 10 },
+    loop: {
+      min: 0,
+      max: sushiFarms.length - 1,
+    },
+    range: {
+      align: true,
+      min: 0,
+      max: sushiFarms.length - 1,
+    },
+    initial: 0,
+    slideChanged: (s) => {
+      console.log(s.track.details)
     },
   })
 
+  const slides = React.useMemo(() => {
+    return (
+      <>
+        {/* @ts-ignore */}
+        {sushiFarms.map((farm, index) => {
+          return (
+            <div key={farm.address} className="keen-slider__slide">
+              <SushiFarm
+                farmName={farm.name}
+                farmAddress={farm.address}
+                delay={Number(`${index}000`)}
+              />
+            </div>
+          )
+        })}
+      </>
+    )
+  }, [])
 
-  React.useEffect(() => {
-    if (!loaded) {
-      setInterval(()=> {
-        setLoaded(true);
-      }, 1000);
-    }
-  }, [loaded])
-  console.log(`sushi farms count${sushiFarms.length}`);
   return (
-
-     <UIWrapper>
+    <UIWrapper>
       <div className="relative">
         {slider ? (
           <div
@@ -78,16 +81,9 @@ export default function SushiFarms() {
           </div>
         ) : null}
         <div ref={sliderRef} className="mt-8 keen-slider">
-         
-        {sushiFarms.map((farm:any, index: any) => {
-      console.log(`showing farm ${farm.id}`);
-      return  <div className="keen-slider__slide"><SushiFarm farmAddress={loaded ? farm.address : sushiFarms[0].address} farmName={farm.name}/>  </div>
-    
-    })}
-           
-          
+          {slides}
         </div>
       </div>
-    </UIWrapper> 
+    </UIWrapper>
   )
 }
