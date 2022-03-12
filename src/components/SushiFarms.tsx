@@ -31,27 +31,17 @@ export default function SushiFarms() {
     },
     initial: 0,
     slideChanged: (s) => {
-      console.log(s.track.details)
+      setLastPosition(s.track.details.abs === s.track.details.maxIdx - 1)
+      setInitPosition(s.track.details.abs === 0)
     },
   })
 
   const slides = React.useMemo(() => {
-    return (
-      <>
-        {/* @ts-ignore */}
-        {sushiFarms.map((farm, index) => {
-          return (
-            <div key={farm.address} className="keen-slider__slide">
-              <SushiFarm
-                farmName={farm.name}
-                farmAddress={farm.address}
-                delay={Number(`${index}000`)}
-              />
-            </div>
-          )
-        })}
-      </>
-    )
+    return sushiFarms.map((farm) => (
+      <div key={farm.address} className="keen-slider__slide">
+        <SushiFarm farmName={farm.name} farmAddress={farm.address} />
+      </div>
+    ))
   }, [])
 
   return (

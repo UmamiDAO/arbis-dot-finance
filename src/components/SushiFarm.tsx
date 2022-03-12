@@ -13,15 +13,16 @@ import useTransaction, { notify } from '../hooks/useTransaction'
 import useGlobalState from '../hooks/useGlobalState'
 
 import NYANEthStrategyABI from '../contracts/NyanETHStrategy.abi'
+import SushiStrategyABI from '../contracts/SushiLPStrategy.abi'
 import ERC20Abi from '../contracts/ERC20.abi'
+import USDCETHStrategyAddress from '../contracts/USDCETHStrategy.address'
 
 type Props = {
   farmName: string
   farmAddress: string
-  delay?: number
 }
 
-export default function SushiFarm({ farmName, farmAddress, delay }: Props) {
+export default function SushiFarm({ farmName, farmAddress }: Props) {
   const initState: {
     [k: string]: string | number | boolean | null
   } = {
@@ -36,7 +37,7 @@ export default function SushiFarm({ farmName, farmAddress, delay }: Props) {
     farmTokensPerShare: null,
     farmUnderlyingTokensAvailable: null,
     farmShareBalance: null,
-    status: 'idle',
+    isInitialized: false,
   }
 
   const [state, setState] = React.useState(initState)
@@ -53,7 +54,9 @@ export default function SushiFarm({ farmName, farmAddress, delay }: Props) {
   const transaction = useTransaction()
   const farmContract = useExternalContractLoader(
     farmAddress,
-    NYANEthStrategyABI
+    farmAddress === USDCETHStrategyAddress
+      ? NYANEthStrategyABI
+      : SushiStrategyABI
   )
   const tokenContract = useExternalContractLoader(tokenAddr, ERC20Abi)
   const rewardContract = useExternalContractLoader(rewardTokenAddr, ERC20Abi)
@@ -73,20 +76,22 @@ export default function SushiFarm({ farmName, farmAddress, delay }: Props) {
     if (!state.farmReward) {
       return '0'
     }
+
     const fixedNum = Number(state.farmReward).toFixed(6)
+
     return Number(fixedNum) / 200
   }, [state.farmReward])
 
   const handleTokenAddr = React.useCallback(async () => {
-    if (!farmContract || state.status !== 'idle') {
+    if (!farmContract) {
       return
     }
-    console.log(`calling handleTokenAddr from ${farmName} with status ${state.status}`)
     try {
-      setState({ ...state, status: 'initializing' })
       const [addr, rewardAddr] = await Promise.all([
         farmContract.depositToken(),
-        farmContract.rewardToken(),
+        farmAddress === USDCETHStrategyAddress
+          ? farmContract.rewardToken()
+          : farmContract.rewardToken1,
       ])
       setTokenAddr(addr)
       setRewardTokenAddr(rewardAddr)
@@ -98,10 +103,10 @@ export default function SushiFarm({ farmName, farmAddress, delay }: Props) {
         state,
       })
     }
-  }, [farmContract, state, farmName])
+  }, [farmContract, state, farmName, farmAddress])
 
   const handleRewardSymbol = React.useCallback(async () => {
-    if (!rewardContract) {
+    if (!rewardContract || !rewardTokenAddr) {
       return null
     }
     try {
@@ -114,7 +119,7 @@ export default function SushiFarm({ farmName, farmAddress, delay }: Props) {
         callingFarmName: farmName,
       })
     }
-  }, [rewardContract, farmName])
+  }, [rewardContract, farmName, rewardTokenAddr])
 
   const handleState = React.useCallback(async () => {
     if (!tokenAddr || !farmContract || !tokenContract || !userAddress) {
@@ -163,7 +168,7 @@ export default function SushiFarm({ farmName, farmAddress, delay }: Props) {
           farmUnderlyingTokensAvailable
         ),
         farmShareBalance: formatEther(shareBalance),
-        status: 'initialized',
+        isInitialized: true,
       })
     } catch (err) {
       console.log({
@@ -299,25 +304,25 @@ export default function SushiFarm({ farmName, farmAddress, delay }: Props) {
     }
   }, [userSigner, farmContract, transaction, handleState, farmAddress])
 
-  const initialize = React.useCallback(() => {
-    if (state.status === 'idle') {
+  React.useEffect(() => {
+    if (tokenAddr === null) {
       handleTokenAddr()
     }
-    if (state.status === 'initializing') {
-      handleRewardSymbol()
-      handleState()
-    }
-  }, [handleTokenAddr, handleState, handleRewardSymbol, state])
+  }, [tokenAddr, handleTokenAddr])
 
   React.useEffect(() => {
-    if (delay) {
-      setTimeout(initialize, delay)
-      return
+    if (rewardSymbol === null) {
+      handleRewardSymbol()
     }
-    initialize()
-  }, [initialize, delay])
+  }, [rewardSymbol, handleRewardSymbol])
 
-  if (state.status === 'initialized') {
+  React.useEffect(() => {
+    if (tokenAddr) {
+      handleState()
+    }
+  }, [tokenAddr, handleState])
+
+  if (!state.isInitialized) {
     return null
   }
 

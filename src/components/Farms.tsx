@@ -4,17 +4,17 @@ import Selector from './Selector'
 import ArbisFarms from './ArbisFarms'
 import SushiFarms from './SushiFarms'
 
-const tokens = ['arbis', 'sushi', /*  'swapr', 'nyan', */ 'legacy']
+const categories = ['arbis', 'sushi', /*  'swapr', 'nyan', */ 'legacy']
 
 export default function Farms() {
   const [searchParams, setSearchParams] = useSearchParams()
-  const token = searchParams.get('token') || ''
+  const category = searchParams.get('category') || ''
 
   const fallbackParams = React.useCallback(() => {
-    if (!tokens.includes(token)) {
-      setSearchParams({ token: 'arbis' })
+    if (!categories.includes(category)) {
+      setSearchParams({ category: 'arbis' })
     }
-  }, [token, setSearchParams])
+  }, [category, setSearchParams])
 
   React.useEffect(() => {
     fallbackParams()
@@ -26,7 +26,7 @@ export default function Farms() {
 
       <nav className="mt-4">
         <Selector>
-          {tokens.map((item) => (
+          {categories.map((item) => (
             <Selector.Item
               key={item}
               text={`${item} farms`}
@@ -37,23 +37,21 @@ export default function Farms() {
                     '_self'
                   )
                 } else {
-                  setSearchParams({ token: item })
+                  setSearchParams({ category: item })
                 }
               }}
-              selected={item === token}
+              selected={item === category}
             />
           ))}
         </Selector>
       </nav>
-      {token === 'arbis' ? (
-        <ArbisFarms />
-      ) : token === 'sushi' ? (
-        <SushiFarms />
-      ) : (
+      {category === 'arbis' ? <ArbisFarms /> : null}
+      {category === 'sushi' ? <SushiFarms /> : null}
+      {!['arbis', 'sushi'].includes(category) ? (
         <section className="flex items-center justify-center h-64">
           <h2 className="text-center text-3xl font-extra-bold">Coming Soon</h2>
         </section>
-      )}
+      ) : null}
     </main>
   )
 }
