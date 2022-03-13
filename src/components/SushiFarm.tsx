@@ -12,8 +12,6 @@ import useExternalContractLoader from '../hooks/useExternalContractLoader'
 import useTransaction, { notify } from '../hooks/useTransaction'
 import useGlobalState from '../hooks/useGlobalState'
 
-import NYANEthStrategyABI from '../contracts/NyanETHStrategy.abi'
-import SushiStrategyABI from '../contracts/SushiLPStrategy.abi'
 import ERC20Abi from '../contracts/ERC20.abi'
 import USDCETHStrategyAddress from '../contracts/USDCETHStrategy.address'
 

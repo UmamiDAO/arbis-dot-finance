@@ -1,8 +1,8 @@
 import React from 'react'
-import axios from 'axios'
 import { formatEther } from '@ethersproject/units'
 import { useNavigate } from 'react-router-dom'
 
+import useGlobalState from '../hooks/useGlobalState'
 import UIWrapper from './UIWrapper'
 import DashboardCard from './DashboardCard'
 import useExternalContractLoader from '../hooks/useExternalContractLoader'
@@ -12,38 +12,17 @@ import { STAKING_POOL_ADDRESSES } from '../config'
 
 export default function Home() {
   const navigate = useNavigate()
-
-  const initState: {
-    status: string
-    arbisPrice: string
-    arbisTVL: string
-  } = {
-    status: 'idle',
-    arbisPrice: '0',
-    arbisTVL: '0',
-  }
-  const [state, dispatch] = React.useReducer(
-    (
-      state: typeof initState,
-      action:
-        | { type: 'started'; payload?: null }
-        | { type: 'error'; payload?: null }
-        | { type: 'success'; payload: { arbisPrice: string; arbisTVL: string } }
-    ) => {
-      switch (action.type) {
-        case 'started':
-          return { ...state, status: 'pending' }
-        case 'error':
-          return { ...state, status: 'rejected' }
-        case 'success':
-          return { ...state, status: 'resolved', ...action.payload }
-        default:
-          throw new Error('unsupported action type given on Home reducer')
-      }
-    },
-    initState
-  )
   const [nyanAPY, setNyanAPY] = React.useState<number | null>(null)
+  const [{ horseysauce }] = useGlobalState()
+
+  const { arbisPrice, arbisTVL } = React.useMemo(() => {
+    if (!horseysauce) {
+      return { arbisPrice: '', arbisTVL: '' }
+    }
+
+    return { ...horseysauce, arbisTVL: horseysauce.tvl }
+  }, [horseysauce])
+
   const nyanContract = useExternalContractLoader(
     STAKING_POOL_ADDRESSES.NYAN,
     NyanRewardsContractAbi
@@ -69,31 +48,11 @@ export default function Home() {
     }
   }, [nyanContract, nyanAPY])
 
-  const initialize = React.useCallback(async () => {
-    if (state.status === 'idle') {
-      try {
-        dispatch({ type: 'started' })
-        const { data } = await axios('https://horseysauce.xyz/')
-        dispatch({
-          type: 'success',
-          payload: { arbisPrice: data.arbisPrice, arbisTVL: data.tvl },
-        })
-      } catch (err) {
-        console.log(err)
-        dispatch({ type: 'error' })
-      }
-    }
-  }, [state])
-
   React.useEffect(() => {
     if (nyanContract) {
       getNyanAPY()
     }
   }, [nyanContract, getNyanAPY])
-
-  React.useEffect(() => {
-    initialize()
-  }, [initialize])
 
   return (
     <UIWrapper>
@@ -122,17 +81,17 @@ export default function Home() {
             <DashboardCard.Content>
               <div className="flex w-full justify-between mt-4">
                 <strong>Price</strong>
-                <div>${state.arbisPrice}</div>
+                <div>${arbisPrice}</div>
               </div>
 
               <div className="flex w-full justify-between mt-4">
                 <strong>TVL</strong>
-                <div>${Number(state.arbisTVL).toLocaleString()}</div>
+                <div>${Number(arbisTVL).toLocaleString()}</div>
               </div>
 
               <div className="flex w-full justify-between mt-4">
                 <strong>Market Cap</strong>
-                <div>${Number(state.arbisTVL).toLocaleString()}</div>
+                <div>${Number(arbisTVL).toLocaleString()}</div>
               </div>
             </DashboardCard.Content>
 

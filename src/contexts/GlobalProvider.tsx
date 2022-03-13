@@ -31,8 +31,20 @@ export default function GlobalProvider({ children }: Props) {
 
   const fetchAPIData = React.useCallback(async () => {
     try {
-      const { data: horseysauce } = await axios('https://horseysauce.xyz')
-      dispatch({ type: 'horseysauce', payload: { horseysauce } })
+      const [coingecko, horsey] = await Promise.all([
+        axios('https://api.coingecko.com/api/v3/coins/arbis-finance'),
+        axios('https://horseysauce.xyz'),
+      ])
+      console.log(horsey)
+      dispatch({
+        type: 'horseysauce',
+        payload: {
+          horseysauce: {
+            arbisPrice: coingecko.data.market_data.current_price.usd,
+            ...horsey.data,
+          },
+        },
+      })
     } catch (err) {
       console.log(err)
     }
