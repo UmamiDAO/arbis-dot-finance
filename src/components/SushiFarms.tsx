@@ -39,7 +39,7 @@ export default function SushiFarms() {
   const slides = React.useMemo(() => {
     return sushiFarms.map((farm) => (
       <div key={farm.address} className="keen-slider__slide">
-        <SushiFarm farmName={farm.name} farmAddress={farm.address} />
+        <SushiFarm farmName={farm.name} farmAddress={farm.address} farmAbi={farm.abi}/>
       </div>
     ))
   }, [])

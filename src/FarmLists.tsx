@@ -40,17 +40,21 @@ import MAGICETHSTRATEGYAddress from './contracts/MAGICETHStrategy.address'
 // import MAGICETHSTRATEGYAddress2 from './contracts/MAGICETHStrategy2.address'
 import L2DAOETHSTRATEGYAddress from './contracts/L2DAOETHStrategy.address'
 import GOHMETHSTRATEGYAddress from './contracts/GOHMETHSTRATEGY.address'
+import SushiLPStrategyAbi from './contracts/SushiLPStrategy.abi'
+import NyanETHStrategyAbi from './contracts/NyanETHStrategy.abi'
 
 export const sushiFarms = [
   {
     id: FARMS.USDCETH,
     name: 'USDC-ETH Strategy',
     address: USDCETHStrategyAddress,
+    abi: NyanETHStrategyAbi
   },
   {
     id: FARMS.MIMETH2,
     name: 'MIM-ETH Strategy2',
     address: MIMETHStrategy2Address,
+    abi: SushiLPStrategyAbi,
     specialWarning:
       'Users Compounding this farm only earn SUSHI and does not earn SPELL. SPELL is recompounded for depositors',
   },
@@ -58,16 +62,19 @@ export const sushiFarms = [
     id: FARMS.SPELLETH,
     name: 'SPELL-ETH Strategy',
     address: SPELLETHStrategyAddress,
+    abi: SushiLPStrategyAbi
   },
   {
     id: FARMS.GOHMETH,
     name: 'gOHM-ETH Strategy',
     address: GOHMETHSTRATEGYAddress,
+    abi: SushiLPStrategyAbi
   },
   {
     id: FARMS.MAGICETH,
     name: 'MAGIC-ETH Strategy (withdraw only)',
     address: MAGICETHSTRATEGYAddress,
+    abi: SushiLPStrategyAbi
   } /* {
       id: FARMS.MAGICETH2,
       name: "MAGIC-ETH Strategy",
@@ -77,5 +84,6 @@ export const sushiFarms = [
     id: FARMS.L2DAOETH,
     name: 'L2DAO-ETH Strategy',
     address: L2DAOETHSTRATEGYAddress,
+    abi: SushiLPStrategyAbi
   },
 ]

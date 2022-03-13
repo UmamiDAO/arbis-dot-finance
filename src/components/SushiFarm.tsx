@@ -19,10 +19,11 @@ import USDCETHStrategyAddress from '../contracts/USDCETHStrategy.address'
 
 type Props = {
   farmName: string
-  farmAddress: string
+  farmAddress: string,
+  farmAbi: any
 }
 
-export default function SushiFarm({ farmName, farmAddress }: Props) {
+export default function SushiFarm({ farmName, farmAddress, farmAbi }: Props) {
   const initState: {
     [k: string]: string | number | boolean | null
   } = {
@@ -54,9 +55,7 @@ export default function SushiFarm({ farmName, farmAddress }: Props) {
   const transaction = useTransaction()
   const farmContract = useExternalContractLoader(
     farmAddress,
-    farmAddress === USDCETHStrategyAddress
-      ? NYANEthStrategyABI
-      : SushiStrategyABI
+    farmAbi
   )
   const tokenContract = useExternalContractLoader(tokenAddr, ERC20Abi)
   const rewardContract = useExternalContractLoader(rewardTokenAddr, ERC20Abi)
