@@ -3,12 +3,12 @@ import { useSearchParams } from 'react-router-dom'
 import Selector from './Selector'
 import ArbisFarms from './ArbisFarms'
 import SushiFarms from './SushiFarms'
-import MarinateAutocompounder from './MarinateAutocompounder'
+import MarinatedUmamiFarms from './MarinatedUmamiFarms'
 
 const categories = [
   'arbis',
   'sushi',
-  'marinate',
+  'mumami',
   /*  'swapr', 'nyan', */ 'legacy',
 ]
 
@@ -28,8 +28,8 @@ export default function Farms() {
         return <ArbisFarms />
       case 'sushi':
         return <SushiFarms />
-      case 'marinate':
-        return <MarinateAutocompounder />
+      case 'mumami':
+        return <MarinatedUmamiFarms />
       default:
         return (
           <section className="flex items-center justify-center h-64">
