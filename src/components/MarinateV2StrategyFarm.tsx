@@ -10,136 +10,189 @@ import useUserAddress from '../hooks/useUserAddress'
 import useUserSigner from '../hooks/useUserSigner'
 import useExternalContractLoader from '../hooks/useExternalContractLoader'
 import useTransaction, { notify } from '../hooks/useTransaction'
-import useGlobalState from '../hooks/useGlobalState'
 
-import ERC20Abi from '../contracts/ERC20.abi'
 import MarinateV2StrategyABI from '../contracts/MarinateV2Strategy.abi'
+import MarinateV2StrategyFarmABI from '../contracts/MarinateV2StrategyFarm.abi'
 
-const farmAddress = '0x50B97c26c1F866156Da1E07Bc47b35d850d34EBa'
-const farmAbi = MarinateV2StrategyABI
-const farmName = 'Stake mUMAMI'
+const farmName = 'Marinate Strategy'
+const farmAddress = '0xE91205e3FE022B601075adb1CDAe5F2294Bf5240'
+const farmAbi = MarinateV2StrategyFarmABI
 
-export default function MarinateAutocompounder() {
-  const initState: {
-    [k: string]: string | number | boolean | null
-  } = {
-    tokenBalance: null,
-    tokenName: null,
-    tokenSymbol: null,
-    isApproved: false,
-    farmSymbol: null,
-    farmTotalDeposits: null,
-    farmTokensPerShare: null,
-    farmBalance: null,
-    farmShareBalance: null,
-    isInitialized: false,
-  }
+function Countdown({ unlockTime }: { unlockTime: number }) {
+  const [remaining, setRemaining] = React.useState<number | null>(null)
 
-  const [state, setState] = React.useState(initState)
-  const [tokenAddr, setTokenAddr] = React.useState<string | null>(null)
-  const [action, setAction] = React.useState<'deposit' | 'withdraw'>('deposit')
+  const handleDates = React.useCallback(() => {
+    setInterval(() => {
+      const then = new Date(unlockTime * 1000).getTime()
+      const curr = new Date().getTime()
+      setRemaining(then - curr)
+    }, 1000)
+  }, [unlockTime])
 
-  const [{ horseysauce }] = useGlobalState()
-  const userAddress = useUserAddress()
-  const userSigner = useUserSigner()
-  const transaction = useTransaction()
-  const farmContract = useExternalContractLoader(farmAddress, farmAbi)
-  const tokenContract = useExternalContractLoader(tokenAddr, ERC20Abi)
-
-  const totalValueStaked = React.useMemo(() => {
-    if (!horseysauce) {
+  const segments = React.useMemo(() => {
+    if (!remaining) {
       return null
     }
 
-    return (
-      horseysauce.strategies.find((strat) => strat.address === farmAddress)
-        ?.totalValueStaked || null
-    )
-  }, [horseysauce])
+    return {
+      days: Math.floor(remaining / (1000 * 60 * 60 * 24)),
+      hours: Math.floor((remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+      minutes: Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60)),
+      seconds: Math.floor((remaining % (1000 * 60)) / 1000),
+    }
+  }, [remaining])
 
-  const handleTokenAddr = React.useCallback(async () => {
+  React.useEffect(() => {
+    handleDates()
+  }, [handleDates])
+
+  return segments ? (
+    <div>
+      <span>{segments.days} days, </span>
+      <span>{segments.hours}h, </span>
+      <span>{segments.minutes}m, </span>
+      <span>{segments.seconds}s</span>
+    </div>
+  ) : null
+}
+
+export default function MarinateV2StrategyFarm() {
+  const initFarmState: {
+    [k: string]: string | number | boolean | null
+  } = {
+    lastDepositTime: null,
+    unlockTime: null,
+    stakedBalance: null,
+    availableTokenRewards: null,
+    totalStaked: null,
+    tokenBalance: null,
+    isApproved: false,
+    isInitialized: false,
+  }
+
+  const initTokenState: {
+    [k: string]: string | number | boolean | null
+  } = {
+    name: null,
+    symbol: null,
+    address: null,
+  }
+
+  const [farmState, setFarmState] = React.useState(initFarmState)
+  const [tokenState, setTokenState] = React.useState(initTokenState)
+  const [action, setAction] = React.useState<'deposit' | 'withdraw'>('deposit')
+
+  const userAddress = useUserAddress()
+  const userSigner = useUserSigner()
+  const transaction = useTransaction()
+
+  const farmContract = useExternalContractLoader(farmAddress, farmAbi)
+
+  const tokenContract = useExternalContractLoader(
+    tokenState.address as string | null,
+    MarinateV2StrategyABI
+  )
+
+  const handleTokenAddress = React.useCallback(async () => {
     if (!farmContract) {
       return
     }
+
     try {
-      const addr = await farmContract.depositToken
-      setTokenAddr(addr)
+      const address = await farmContract.STOKEN()
+      setTokenState({ ...tokenState, address })
     } catch (err) {
       console.log({
         err,
-        callingFunc: 'handleTokenAddr',
+        callingFunc: 'handleTokenAddress',
         callingFarmName: farmName,
-        state,
       })
     }
-  }, [farmContract, state])
+  }, [farmContract, tokenState])
 
-  const handleState = React.useCallback(async () => {
-    if (!tokenAddr || !farmContract || !tokenContract || !userAddress) {
+  const handleTokenState = React.useCallback(async () => {
+    if (
+      !tokenState.address ||
+      !tokenContract ||
+      tokenState.name ||
+      tokenState.symbol
+    ) {
+      return
+    }
+
+    try {
+      const [name, symbol] = await Promise.all([
+        tokenContract.name(),
+        tokenContract.symbol(),
+      ])
+      setTokenState({ ...tokenState, name, symbol })
+    } catch (err) {
+      console.log({
+        err,
+        callingFunc: 'handleTokenState',
+        callingFarmName: farmName,
+      })
+    }
+  }, [tokenState, tokenContract])
+
+  const handleFarmState = React.useCallback(async () => {
+    if (
+      !tokenState.address ||
+      !farmContract ||
+      !tokenContract ||
+      !userAddress
+    ) {
       return
     }
     try {
       const [
+        stakedBalance,
+        farmerInfo,
+        availableTokenRewards,
+        totalStaked,
+        allowance,
         tokenBalance,
-        tokenName,
-        tokenSymbol,
-        approved,
-        farmSymbol,
-        farmTotalDeposits,
-        shareBalance,
-        farmTokensPerShare,
       ] = await Promise.all([
-        tokenContract.balanceOf(userAddress),
-        tokenContract.name(),
-        tokenContract.symbol(),
+        farmContract.stakedBalance(userAddress),
+        farmContract.farmerInfo(userAddress),
+        farmContract.getAvailableTokenRewards(userAddress, tokenState.address),
+        farmContract.totalStaked,
         tokenContract.allowance(userAddress, farmAddress),
-        farmContract.symbol(),
-        farmContract.totalDeposits(),
-        farmContract.balanceOf(userAddress),
-        farmContract.getDepositTokensForShares(
-          BigNumber.from(BigInt(1000000000000000000))
-        ),
+        tokenContract.balanceOf(userAddress),
       ])
 
-      const farmUnderlyingTokensAvailable =
-        await farmContract.getDepositTokensForShares(shareBalance || 0)
-      const isApproved = !BigNumber.from('0').eq(approved)
+      const isApproved = !BigNumber.from('0').eq(allowance)
+      const { lastDepositTime, unlockTime } = farmerInfo
 
-      setState({
+      setFarmState({
+        lastDepositTime,
+        unlockTime,
+        stakedBalance,
+        availableTokenRewards,
+        totalStaked,
         tokenBalance: formatEther(tokenBalance),
-        tokenName,
-        tokenSymbol,
         isApproved,
-        farmSymbol,
-        farmTotalDeposits: formatEther(farmTotalDeposits),
-        farmBalance: formatEther(shareBalance),
-        farmUnderlyingTokensAvailable: formatEther(
-          farmUnderlyingTokensAvailable
-        ),
-        farmShareBalance: formatEther(shareBalance),
-        farmTokensPerShare: formatEther(farmTokensPerShare),
         isInitialized: true,
       })
     } catch (err) {
       console.log({
         err,
-        callingFunc: 'handleState',
+        callingFunc: 'handleFarmState',
         callingFarmName: farmName,
       })
     }
-  }, [tokenAddr, farmContract, tokenContract, userAddress])
+  }, [tokenState.address, farmContract, tokenContract, userAddress])
 
   const handleDeposit = React.useCallback(
     async ({ depositAmount }, { resetForm }) => {
-      if (!state.isApproved || !farmContract || !userSigner) {
+      if (!farmState.isApproved || !farmContract || !userSigner) {
         return
       }
 
       try {
-        const data = await farmContract.interface.encodeFunctionData(
-          'deposit',
-          [parseEther(String(depositAmount))]
-        )
+        const data = await farmContract.interface.encodeFunctionData('stake', [
+          depositAmount,
+        ])
 
         await transaction(
           userSigner.sendTransaction({ to: farmAddress, data } as any)
@@ -157,12 +210,12 @@ export default function MarinateAutocompounder() {
         }, 10000)
       }
     },
-    [state.isApproved, farmContract, userSigner, transaction]
+    [farmState.isApproved, farmContract, userSigner, transaction]
   )
 
   const handleWithdraw = React.useCallback(
     async ({ withdrawAmount }, { resetForm }) => {
-      if (!state.isApproved || !farmContract || !userSigner) {
+      if (!farmState.isApproved || !farmContract || !userSigner) {
         return
       }
 
@@ -184,14 +237,16 @@ export default function MarinateAutocompounder() {
           autoDismiss: 2000,
         })
       } finally {
-        resetForm()
+        setTimeout(() => {
+          resetForm()
+        }, 10000)
       }
     },
-    [state.isApproved, farmContract, userSigner, transaction]
+    [farmState.isApproved, farmContract, userSigner, transaction]
   )
 
   const handleApproval = React.useCallback(async () => {
-    if (!userSigner || !tokenContract || !tokenAddr) {
+    if (!userSigner || !tokenContract || !tokenState.address) {
       return
     }
 
@@ -202,7 +257,7 @@ export default function MarinateAutocompounder() {
       ])
 
       await transaction(
-        userSigner.sendTransaction({ to: tokenAddr, data } as any)
+        userSigner.sendTransaction({ to: tokenState.address, data } as any)
       )
     } catch (err) {
       notify.notification({
@@ -217,27 +272,66 @@ export default function MarinateAutocompounder() {
         callingFarmName: farmName,
       })
     }
-  }, [userSigner, tokenContract, transaction, tokenAddr])
+  }, [userSigner, tokenContract, transaction, tokenState.address])
 
-  React.useEffect(() => {
-    if (tokenAddr === null) {
-      handleTokenAddr()
-    }
-  }, [tokenAddr, handleTokenAddr])
-
-  React.useEffect(() => {
-    if (!tokenAddr) {
+  const handleClaim = React.useCallback(async () => {
+    if (!farmState.isApproved || !userSigner || !farmContract) {
       return
     }
 
-    handleState()
+    try {
+      const data = await farmContract.interface.encodeFunctionData(
+        'claimRewards',
+        []
+      )
+      await transaction(
+        userSigner.sendTransaction({ to: farmAddress, data } as any)
+      )
+    } catch (err) {
+      notify.notification({
+        eventCode: 'txError',
+        type: 'error',
+        message: (err as Error).message,
+        autoDismiss: 2000,
+      })
+    }
+  }, [userSigner, farmContract, farmState.isApproved, transaction])
 
-    const pollFarmState = setInterval(handleState, 30000)
+  const reward = React.useMemo(() => {
+    if (!farmState.availableTokenRewards) {
+      return '0'
+    }
+
+    const fixedNum = Number(farmState.availableTokenRewards).toFixed(6)
+
+    return Number(fixedNum) / 200
+  }, [farmState.availableTokenRewards])
+
+  React.useEffect(() => {
+    if (tokenState.address === null) {
+      handleTokenAddress()
+    }
+  }, [tokenState.address, handleTokenAddress])
+
+  React.useEffect(() => {
+    if (tokenContract) {
+      handleTokenState()
+    }
+  }, [tokenContract, handleTokenState])
+
+  React.useEffect(() => {
+    if (Object.values(tokenState).includes(null)) {
+      return
+    }
+
+    handleFarmState()
+
+    const pollFarmState = setInterval(handleFarmState, 30000)
 
     return () => clearInterval(pollFarmState)
-  }, [tokenAddr, handleState])
+  }, [tokenState, handleFarmState])
 
-  if (!state.isInitialized) {
+  if (!farmState.isInitialized) {
     return null
   }
 
@@ -258,35 +352,20 @@ export default function MarinateAutocompounder() {
 
       <DashboardCard.Content>
         <p className="mt-4">
-          Stake your ${state.tokenSymbol} for ${state.farmSymbol} to
-          automatically compound your staking rewards
+          Stake your ${tokenState.symbol} in Arbis to let them compound
+          automatically!
         </p>
 
         <div className="mt-8">
           <div className="flex justify-between">
             <strong>TVL:</strong>
             <div className="text-right">
-              {Number(state.farmTotalDeposits) ? (
+              {Number(farmState.totalStaked) ? (
                 <>
-                  {parseFloat(String(state.farmTotalDeposits)).toLocaleString()}
-                  <span> ${state.tokenSymbol}</span>
+                  {parseFloat(String(farmState.totalStaked)).toLocaleString()}
+                  <span> ${tokenState.symbol}</span>
                 </>
               ) : null}
-              {Number(totalValueStaked) ? (
-                <>
-                  <span> === </span>
-                  <span>
-                    ${Number(totalValueStaked).toLocaleString('en-us')}
-                  </span>
-                </>
-              ) : null}
-            </div>
-          </div>
-
-          <div className="flex justify-between">
-            <strong>1 ${state.farmSymbol}:</strong>
-            <div className="text-right">
-              {Number(state.farmTokensPerShare).toFixed(3)} ${state.tokenSymbol}
             </div>
           </div>
         </div>
@@ -320,14 +399,14 @@ export default function MarinateAutocompounder() {
                         onClick={() =>
                           setFieldValue(
                             'depositAmount',
-                            Number(state.tokenBalance)
+                            Number(String(farmState.tokenBalance))
                           )
                         }
                         className="text-primary"
                       >
-                        {Number(state.tokenBalance).toFixed(3)}
+                        {Number(farmState.tokenBalance).toFixed(3)}
                       </button>
-                      <span> ${state.tokenSymbol}</span>
+                      <span> ${tokenState.symbol}</span>
                     </div>
 
                     <Field
@@ -340,15 +419,15 @@ export default function MarinateAutocompounder() {
                     <div className="mt-4">
                       <DashboardCard.Action
                         onClick={
-                          state.isApproved ? handleSubmit : handleApproval
+                          farmState.isApproved ? handleSubmit : handleApproval
                         }
                         color="white"
                         disabled={
                           !Number(values.depositAmount) &&
-                          Boolean(state.isApproved)
+                          Boolean(farmState.isApproved)
                         }
                       >
-                        {state.isApproved ? (
+                        {farmState.isApproved ? (
                           <>
                             {isSubmitting ? (
                               <span>staking...</span>
@@ -383,21 +462,14 @@ export default function MarinateAutocompounder() {
                       onClick={() =>
                         setFieldValue(
                           'withdrawAmount',
-                          Number(state.farmShareBalance)
+                          Number(farmState.stakedBalance)
                         )
                       }
                       className="text-primary"
                     >
-                      {Number(state.farmShareBalance).toFixed(3)}
+                      {Number(farmState.stakedBalance).toFixed(3)}
                     </button>
-                    <span> ${state.farmSymbol}</span>
-                  </div>
-
-                  <div>
-                    <span>GET BACK: </span>
-                    <span>
-                      {state.farmUnderlyingTokensAvailable} ${state.tokenSymbol}
-                    </span>
+                    <span> ${tokenState.symbol}</span>
                   </div>
 
                   <Field
@@ -409,19 +481,30 @@ export default function MarinateAutocompounder() {
 
                   <div className="mt-4">
                     <DashboardCard.Action
-                      onClick={state.isApproved ? handleSubmit : handleApproval}
+                      onClick={
+                        farmState.isApproved ? handleSubmit : handleApproval
+                      }
                       color="white"
                       disabled={
-                        !Number(values.withdrawAmount) &&
-                        Boolean(state.isApproved)
+                        (!Number(values.withdrawAmount) &&
+                          Boolean(farmState.isApproved)) ||
+                        farmState.unlockTime !== 0
                       }
                     >
-                      {state.isApproved ? (
+                      {farmState.isApproved ? (
                         <>
                           {isSubmitting ? (
                             <span>withdrawing...</span>
                           ) : (
-                            <span>withdraw</span>
+                            <span>
+                              {farmState.unlockTime ? (
+                                <Countdown
+                                  unlockTime={Number(farmState.unlockTime)}
+                                />
+                              ) : (
+                                'withdraw'
+                              )}
+                            </span>
                           )}
                         </>
                       ) : (
@@ -434,7 +517,26 @@ export default function MarinateAutocompounder() {
             </Formik>
           </div>
         ) : null}
+
+        <div className="mt-4">
+          <DashboardCard.Action
+            color="black"
+            disabled={!Number(farmState.availableTokenRewards)}
+            onClick={handleClaim}
+          >
+            Claim Rewards
+          </DashboardCard.Action>
+        </div>
       </DashboardCard.Content>
+
+      <DashboardCard.More>
+        <strong className="mt-8">Current Reward(s):</strong>
+
+        <div className="flex justify-between">
+          <div>{reward}</div>
+          <div>{tokenState.symbol}</div>
+        </div>
+      </DashboardCard.More>
     </DashboardCard>
   )
 }

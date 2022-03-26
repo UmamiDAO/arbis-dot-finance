@@ -17,7 +17,7 @@ import USDCETHStrategyAddress from '../contracts/USDCETHStrategy.address'
 
 type Props = {
   farmName: string
-  farmAddress: string,
+  farmAddress: string
   farmAbi: any
 }
 
@@ -51,10 +51,7 @@ export default function SushiFarm({ farmName, farmAddress, farmAbi }: Props) {
   const userAddress = useUserAddress()
   const userSigner = useUserSigner()
   const transaction = useTransaction()
-  const farmContract = useExternalContractLoader(
-    farmAddress,
-    farmAbi
-  )
+  const farmContract = useExternalContractLoader(farmAddress, farmAbi)
   const tokenContract = useExternalContractLoader(tokenAddr, ERC20Abi)
   const rewardContract = useExternalContractLoader(rewardTokenAddr, ERC20Abi)
 
@@ -199,21 +196,16 @@ export default function SushiFarm({ farmName, farmAddress, farmAbi }: Props) {
         await transaction(
           userSigner.sendTransaction({ to: farmAddress, data } as any)
         )
-      } finally {
-        setTimeout(() => {
-          resetForm()
-          handleState()
-        }, 10000)
+      } catch (err) {
+        notify.notification({
+          eventCode: 'txError',
+          type: 'error',
+          message: (err as Error).message,
+          autoDismiss: 10000,
+        })
       }
     },
-    [
-      state.isApproved,
-      farmContract,
-      userSigner,
-      transaction,
-      handleState,
-      farmAddress,
-    ]
+    [state.isApproved, farmContract, userSigner, transaction, farmAddress]
   )
 
   const handleWithdraw = React.useCallback(
@@ -232,21 +224,16 @@ export default function SushiFarm({ farmName, farmAddress, farmAbi }: Props) {
         await transaction(
           userSigner.sendTransaction({ to: farmAddress, data } as any)
         )
-      } finally {
-        setTimeout(() => {
-          resetForm()
-          handleState()
-        }, 10000)
+      } catch (err) {
+        notify.notification({
+          eventCode: 'txError',
+          type: 'error',
+          message: (err as Error).message,
+          autoDismiss: 10000,
+        })
       }
     },
-    [
-      state.isApproved,
-      farmContract,
-      userSigner,
-      transaction,
-      handleState,
-      farmAddress,
-    ]
+    [state.isApproved, farmContract, userSigner, transaction, farmAddress]
   )
 
   const handleApproval = React.useCallback(async () => {
@@ -268,29 +255,6 @@ export default function SushiFarm({ farmName, farmAddress, farmAbi }: Props) {
       await transaction(
         userSigner.sendTransaction({ to: tokenAddr, data } as any)
       )
-    } finally {
-      setTimeout(() => {
-        handleState()
-      }, 10000)
-    }
-  }, [
-    userSigner,
-    tokenContract,
-    state,
-    transaction,
-    handleState,
-    tokenAddr,
-    farmAddress,
-  ])
-
-  const handleCompound = React.useCallback(async () => {
-    if (!userSigner || !farmContract) {
-      return
-    }
-    try {
-      const data = await farmContract.reinvest()
-      transaction(userSigner.sendTransaction({ to: farmAddress, data } as any))
-      setTimeout(() => handleState(), 10000)
     } catch (err) {
       notify.notification({
         eventCode: 'txError',
@@ -299,7 +263,24 @@ export default function SushiFarm({ farmName, farmAddress, farmAbi }: Props) {
         autoDismiss: 10000,
       })
     }
-  }, [userSigner, farmContract, transaction, handleState, farmAddress])
+  }, [userSigner, tokenContract, state, transaction, tokenAddr, farmAddress])
+
+  const handleCompound = React.useCallback(async () => {
+    if (!userSigner || !farmContract) {
+      return
+    }
+    try {
+      const data = await farmContract.reinvest()
+      transaction(userSigner.sendTransaction({ to: farmAddress, data } as any))
+    } catch (err) {
+      notify.notification({
+        eventCode: 'txError',
+        type: 'error',
+        message: (err as Error).message,
+        autoDismiss: 10000,
+      })
+    }
+  }, [userSigner, farmContract, transaction, farmAddress])
 
   React.useEffect(() => {
     if (tokenAddr === null) {
@@ -314,10 +295,20 @@ export default function SushiFarm({ farmName, farmAddress, farmAbi }: Props) {
   }, [rewardSymbol, handleRewardSymbol])
 
   React.useEffect(() => {
-    if (tokenAddr) {
+    if (!tokenAddr) {
+      return
+    }
+
+    if (!state.isInitialized) {
       handleState()
     }
-  }, [tokenAddr, handleState])
+
+    const pollForFarmState = setInterval(() => {
+      handleState()
+    }, 30000)
+
+    return () => clearInterval(pollForFarmState)
+  }, [tokenAddr, state, handleState])
 
   if (!state.isInitialized) {
     return null

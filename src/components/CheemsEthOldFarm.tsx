@@ -84,7 +84,11 @@ export default function CheemsEthOldFarm() {
       setTokenAddr(addr)
       setRewardTokenAddr(rewardAddr)
     } catch (err) {
-      console.log(err)
+      console.log({
+        err,
+        callingFunc: 'handleTokenAddr',
+        callingFarmName: 'CheemsEthOld',
+      })
     }
   }, [farmContract])
 
@@ -96,7 +100,11 @@ export default function CheemsEthOldFarm() {
       const symbol = await rewardContract.symbol()
       setRewardSymbol(symbol)
     } catch (err) {
-      console.log(err)
+      console.log({
+        err,
+        callingFunc: 'handleRewardSymbol',
+        callingFarmName: 'CheemsEthOld',
+      })
     }
   }, [rewardContract])
 
@@ -153,7 +161,11 @@ export default function CheemsEthOldFarm() {
         isInitialized: true,
       })
     } catch (err) {
-      console.log(err)
+      console.log({
+        err,
+        callingFunc: 'handleState',
+        callingFarmName: 'CheemsEthOld',
+      })
     }
   }, [tokenAddr, farmContract, tokenContract, userAddress])
 
@@ -173,14 +185,16 @@ export default function CheemsEthOldFarm() {
         await transaction(
           userSigner.sendTransaction({ to: farmAddress, data } as any)
         )
-      } finally {
-        setTimeout(() => {
-          resetForm()
-          handleState()
-        }, 10000)
+      } catch (err) {
+        notify.notification({
+          eventCode: 'txError',
+          type: 'error',
+          message: (err as Error).message,
+          autoDismiss: 2000,
+        })
       }
     },
-    [state.isApproved, farmContract, userSigner, transaction, handleState]
+    [state.isApproved, farmContract, userSigner, transaction]
   )
 
   const handleWithdraw = React.useCallback(
@@ -199,14 +213,16 @@ export default function CheemsEthOldFarm() {
         await transaction(
           userSigner.sendTransaction({ to: farmAddress, data } as any)
         )
-      } finally {
-        setTimeout(() => {
-          resetForm()
-          handleState()
-        }, 10000)
+      } catch (err) {
+        notify.notification({
+          eventCode: 'txError',
+          type: 'error',
+          message: (err as Error).message,
+          autoDismiss: 2000,
+        })
       }
     },
-    [state.isApproved, farmContract, userSigner, transaction, handleState]
+    [state.isApproved, farmContract, userSigner, transaction]
   )
 
   const handleApproval = React.useCallback(async () => {
@@ -228,12 +244,15 @@ export default function CheemsEthOldFarm() {
       await transaction(
         userSigner.sendTransaction({ to: tokenAddr, data } as any)
       )
-    } finally {
-      setTimeout(() => {
-        handleState()
-      }, 10000)
+    } catch (err) {
+      notify.notification({
+        eventCode: 'txError',
+        type: 'error',
+        message: (err as Error).message,
+        autoDismiss: 2000,
+      })
     }
-  }, [userSigner, tokenContract, state, transaction, handleState, tokenAddr])
+  }, [userSigner, tokenContract, state, transaction, tokenAddr])
 
   const handleCompound = React.useCallback(async () => {
     if (!userSigner || !farmContract) {
@@ -257,6 +276,9 @@ export default function CheemsEthOldFarm() {
     handleTokenAddr()
     handleState()
     handleRewardSymbol()
+
+    const pollFarmState = setInterval(handleState, 30000)
+    return () => clearInterval(pollFarmState)
   }, [handleTokenAddr, handleState, handleRewardSymbol])
 
   React.useEffect(() => {
