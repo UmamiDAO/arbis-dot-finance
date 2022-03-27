@@ -19,7 +19,7 @@ import ERC20Abi from '../contracts/ERC20.abi'
 
 const farmAddress = mUMAMIAutocompounderAddress
 const farmAbi = MarinateV2StrategyABI
-const farmName = 'Autocompound $mUMAMI'
+const farmName = 'Step 1. Autocompound $mUMAMI'
 
 export default function MarinateAutocompounder() {
   const initState: {

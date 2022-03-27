@@ -17,7 +17,7 @@ import MarinateV2StrategyFarmABI from '../contracts/MarinateV2StrategyFarm.abi'
 
 // testnet address 0xE91205e3FE022B601075adb1CDAe5F2294Bf5240
 
-const farmName = 'Boost with $ARBIS Rewards'
+const farmName = 'Step 2. Boost with $ARBIS Rewards'
 const farmAddress = mUMAMIAutocompounderFarm
 const farmAbi = MarinateV2StrategyFarmABI
 
