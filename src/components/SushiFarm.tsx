@@ -302,13 +302,17 @@ export default function SushiFarm({ farmName, farmAddress, farmAbi }: Props) {
     if (!state.isInitialized) {
       handleState()
     }
-
-    const pollForFarmState = setInterval(() => {
-      handleState()
-    }, 30000)
-
-    return () => clearInterval(pollForFarmState)
   }, [tokenAddr, state, handleState])
+
+  React.useEffect(() => {
+    if (!state.isInitialized) {
+      return
+    }
+
+    const interval = setInterval(handleState, 30000)
+
+    return () => clearInterval(interval)
+  }, [state.isInitialized, handleState])
 
   if (!state.isInitialized) {
     return null

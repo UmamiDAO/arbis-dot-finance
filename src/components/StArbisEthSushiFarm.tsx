@@ -140,15 +140,6 @@ export default function StArbisEthSushiFarm() {
     }
   }, [farmContract, tokenAddr, tokenContract, userAddress])
 
-  const initialize = React.useCallback(() => {
-    handleTokenAddr()
-    handleState()
-
-    const pollFarmState = setInterval(handleState, 30000)
-
-    return () => clearInterval(pollFarmState)
-  }, [handleTokenAddr, handleState])
-
   const handleDeposit = React.useCallback(
     async ({ depositAmount }, { resetForm }) => {
       if (!state.isApproved || !farmContract || !userSigner) {
@@ -269,9 +260,24 @@ export default function StArbisEthSushiFarm() {
     )
   }, [state])
 
+  const initialize = React.useCallback(() => {
+    handleTokenAddr()
+    handleState()
+  }, [handleTokenAddr, handleState])
+
   React.useEffect(() => {
     initialize()
   }, [initialize])
+
+  React.useEffect(() => {
+    if (!state.initialized) {
+      return
+    }
+
+    const interval = setInterval(handleState, 30000)
+
+    return () => clearInterval(interval)
+  }, [state.initialized, handleState])
 
   if (!state.initialized) {
     return null

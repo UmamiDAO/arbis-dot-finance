@@ -1,5 +1,5 @@
 import React from 'react'
-import { formatEther, parseEther } from '@ethersproject/units'
+import { formatUnits, parseUnits } from '@ethersproject/units'
 import { BigNumber } from 'ethers'
 import { Formik, Form, Field } from 'formik'
 
@@ -11,11 +11,14 @@ import useUserSigner from '../hooks/useUserSigner'
 import useExternalContractLoader from '../hooks/useExternalContractLoader'
 import useTransaction, { notify } from '../hooks/useTransaction'
 
+import mUMAMIAutocompounderFarm from '../contracts/mUMAMIAutocompounderFarm.address'
 import MarinateV2StrategyABI from '../contracts/MarinateV2Strategy.abi'
 import MarinateV2StrategyFarmABI from '../contracts/MarinateV2StrategyFarm.abi'
 
-const farmName = 'Marinate Strategy'
-const farmAddress = '0xE91205e3FE022B601075adb1CDAe5F2294Bf5240'
+// testnet address 0xE91205e3FE022B601075adb1CDAe5F2294Bf5240
+
+const farmName = 'Boost with $ARBIS Rewards'
+const farmAddress = mUMAMIAutocompounderFarm
 const farmAbi = MarinateV2StrategyFarmABI
 
 function Countdown({ unlockTime }: { unlockTime: number }) {
@@ -53,7 +56,9 @@ function Countdown({ unlockTime }: { unlockTime: number }) {
       <span>{segments.minutes}m, </span>
       <span>{segments.seconds}s</span>
     </div>
-  ) : null
+  ) : (
+    <span>Unlock Time</span>
+  )
 }
 
 export default function MarinateV2StrategyFarm() {
@@ -146,31 +151,29 @@ export default function MarinateV2StrategyFarm() {
     }
     try {
       const [
-        stakedBalance,
         farmerInfo,
         availableTokenRewards,
         totalStaked,
         allowance,
         tokenBalance,
       ] = await Promise.all([
-        farmContract.stakedBalance(userAddress),
         farmContract.farmerInfo(userAddress),
         farmContract.getAvailableTokenRewards(userAddress, tokenState.address),
-        farmContract.totalStaked,
+        farmContract.totalStaked(),
         tokenContract.allowance(userAddress, farmAddress),
         tokenContract.balanceOf(userAddress),
       ])
 
       const isApproved = !BigNumber.from('0').eq(allowance)
-      const { lastDepositTime, unlockTime } = farmerInfo
+      const { lastDepositTime, amount, unlockTime } = farmerInfo
 
       setFarmState({
         lastDepositTime,
         unlockTime,
-        stakedBalance,
-        availableTokenRewards,
-        totalStaked,
-        tokenBalance: formatEther(tokenBalance),
+        stakedBalance: formatUnits(amount, 9),
+        availableTokenRewards: formatUnits(availableTokenRewards, 9),
+        totalStaked: formatUnits(totalStaked, 9),
+        tokenBalance: formatUnits(tokenBalance, 9),
         isApproved,
         isInitialized: true,
       })
@@ -191,7 +194,7 @@ export default function MarinateV2StrategyFarm() {
 
       try {
         const data = await farmContract.interface.encodeFunctionData('stake', [
-          depositAmount,
+          parseUnits(String(depositAmount), 9),
         ])
 
         await transaction(
@@ -205,9 +208,7 @@ export default function MarinateV2StrategyFarm() {
           autoDismiss: 2000,
         })
       } finally {
-        setTimeout(() => {
-          resetForm()
-        }, 10000)
+        resetForm()
       }
     },
     [farmState.isApproved, farmContract, userSigner, transaction]
@@ -220,10 +221,9 @@ export default function MarinateV2StrategyFarm() {
       }
 
       try {
-        const amount = parseEther(String(Number(withdrawAmount)))
         const data = await farmContract.interface.encodeFunctionData(
           'withdraw',
-          [amount]
+          []
         )
 
         await transaction(
@@ -237,9 +237,7 @@ export default function MarinateV2StrategyFarm() {
           autoDismiss: 2000,
         })
       } finally {
-        setTimeout(() => {
-          resetForm()
-        }, 10000)
+        resetForm()
       }
     },
     [farmState.isApproved, farmContract, userSigner, transaction]
@@ -253,7 +251,7 @@ export default function MarinateV2StrategyFarm() {
     try {
       const data = await tokenContract.interface.encodeFunctionData('approve', [
         farmAddress,
-        parseEther(String(Number.MAX_SAFE_INTEGER)),
+        parseUnits(String(Number.MAX_SAFE_INTEGER), 9),
       ])
 
       await transaction(
@@ -297,16 +295,6 @@ export default function MarinateV2StrategyFarm() {
     }
   }, [userSigner, farmContract, farmState.isApproved, transaction])
 
-  const reward = React.useMemo(() => {
-    if (!farmState.availableTokenRewards) {
-      return '0'
-    }
-
-    const fixedNum = Number(farmState.availableTokenRewards).toFixed(6)
-
-    return Number(fixedNum) / 200
-  }, [farmState.availableTokenRewards])
-
   React.useEffect(() => {
     if (tokenState.address === null) {
       handleTokenAddress()
@@ -323,13 +311,18 @@ export default function MarinateV2StrategyFarm() {
     if (Object.values(tokenState).includes(null)) {
       return
     }
-
     handleFarmState()
-
-    const pollFarmState = setInterval(handleFarmState, 30000)
-
-    return () => clearInterval(pollFarmState)
   }, [tokenState, handleFarmState])
+
+  React.useEffect(() => {
+    if (!farmState.isInitialized) {
+      return
+    }
+
+    const interval = setInterval(handleFarmState, 30000)
+
+    return () => clearInterval(interval)
+  }, [farmState.isInitialized, handleFarmState])
 
   if (!farmState.isInitialized) {
     return null
@@ -340,6 +333,10 @@ export default function MarinateV2StrategyFarm() {
       <DashboardCard.Title>{farmName}</DashboardCard.Title>
 
       <DashboardCard.Subtitle>
+        <span className="font-extrabold">
+          Est. APY for ${tokenState.symbol} w/ ARBIS Booster: 100%-150%
+        </span>
+        <span className="text-gray-500 font-light"> | </span>
         <a
           href={`https://arbiscan.io/address/${farmAddress}`}
           target="_blank"
@@ -352,8 +349,8 @@ export default function MarinateV2StrategyFarm() {
 
       <DashboardCard.Content>
         <p className="mt-4">
-          Stake your ${tokenState.symbol} in Arbis to let them compound
-          automatically!
+          Don't forget to deposit your ${tokenState.symbol} to our $ARBIS
+          Booster to start raking in savory $ARBIS rewards!
         </p>
 
         <div className="mt-8">
@@ -450,68 +447,58 @@ export default function MarinateV2StrategyFarm() {
         {action === 'withdraw' ? (
           <div className="mt-4">
             <Formik
-              initialValues={{ withdrawAmount: '0' }}
+              initialValues={{
+                withdrawAmount: Number(farmState.stakedBalance),
+              }}
               onSubmit={handleWithdraw}
             >
               {({ isSubmitting, handleSubmit, setFieldValue, values }) => (
                 <Form method="post">
-                  <div>
-                    <span>MAX: </span>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setFieldValue(
-                          'withdrawAmount',
-                          Number(farmState.stakedBalance)
-                        )
-                      }
-                      className="text-primary"
-                    >
-                      {Number(farmState.stakedBalance).toFixed(3)}
-                    </button>
-                    <span> ${tokenState.symbol}</span>
-                  </div>
+                  <fieldset disabled={isSubmitting}>
+                    <div>
+                      <span>ALL ${tokenState.symbol} IS WITHDRAWN AT ONCE</span>
+                    </div>
+                    <Field
+                      name="withdrawAmount"
+                      className="border mt-2 border-gray-300 p-4 rounded w-full"
+                      type="number"
+                      disabled
+                    />
 
-                  <Field
-                    name="withdrawAmount"
-                    className="border mt-2 border-gray-300 p-4 rounded w-full"
-                    disabled={isSubmitting}
-                    type="number"
-                  />
-
-                  <div className="mt-4">
-                    <DashboardCard.Action
-                      onClick={
-                        farmState.isApproved ? handleSubmit : handleApproval
-                      }
-                      color="white"
-                      disabled={
-                        (!Number(values.withdrawAmount) &&
-                          Boolean(farmState.isApproved)) ||
-                        farmState.unlockTime !== 0
-                      }
-                    >
-                      {farmState.isApproved ? (
-                        <>
-                          {isSubmitting ? (
-                            <span>withdrawing...</span>
-                          ) : (
-                            <span>
-                              {farmState.unlockTime ? (
-                                <Countdown
-                                  unlockTime={Number(farmState.unlockTime)}
-                                />
-                              ) : (
-                                'withdraw'
-                              )}
-                            </span>
-                          )}
-                        </>
-                      ) : (
-                        <span>approve</span>
-                      )}
-                    </DashboardCard.Action>
-                  </div>
+                    <div className="mt-4">
+                      <DashboardCard.Action
+                        onClick={
+                          farmState.isApproved ? handleSubmit : handleApproval
+                        }
+                        color="white"
+                        disabled={
+                          (!Number(values.withdrawAmount) &&
+                            Boolean(farmState.isApproved)) ||
+                          farmState.unlockTime !== 0
+                        }
+                      >
+                        {farmState.isApproved ? (
+                          <>
+                            {isSubmitting ? (
+                              <span>withdrawing...</span>
+                            ) : (
+                              <span>
+                                {farmState.unlockTime ? (
+                                  <Countdown
+                                    unlockTime={Number(farmState.unlockTime)}
+                                  />
+                                ) : (
+                                  'withdraw'
+                                )}
+                              </span>
+                            )}
+                          </>
+                        ) : (
+                          <span>approve</span>
+                        )}
+                      </DashboardCard.Action>
+                    </div>
+                  </fieldset>
                 </Form>
               )}
             </Formik>
@@ -533,7 +520,7 @@ export default function MarinateV2StrategyFarm() {
         <strong className="mt-8">Current Reward(s):</strong>
 
         <div className="flex justify-between">
-          <div>{reward}</div>
+          <div>{Number(farmState.availableTokenRewards).toFixed(6)}</div>
           <div>{tokenState.symbol}</div>
         </div>
       </DashboardCard.More>

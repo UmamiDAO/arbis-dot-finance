@@ -338,16 +338,21 @@ export default function StArbisFarm() {
     }
     if (state.status === 'pending') {
       populateState()
-
-      const pollFarmState = setInterval(populateState, 30000)
-
-      return () => clearInterval(pollFarmState)
     }
   }, [setTokenAddress, populateState, state])
 
   React.useEffect(() => {
     initialize()
   }, [initialize])
+
+  React.useEffect(() => {
+    if (state.status !== 'resolved') {
+      return
+    }
+    const interval = setInterval(populateState, 30000)
+
+    return () => clearInterval(interval)
+  }, [state.status, populateState])
 
   if (state.status !== 'resolved') {
     return null

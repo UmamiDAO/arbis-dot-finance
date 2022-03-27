@@ -1,5 +1,5 @@
 import React from 'react'
-import { formatEther, parseEther } from '@ethersproject/units'
+import { parseUnits, formatUnits } from '@ethersproject/units'
 import { BigNumber } from 'ethers'
 import { Formik, Form, Field } from 'formik'
 
@@ -10,14 +10,16 @@ import useUserAddress from '../hooks/useUserAddress'
 import useUserSigner from '../hooks/useUserSigner'
 import useExternalContractLoader from '../hooks/useExternalContractLoader'
 import useTransaction, { notify } from '../hooks/useTransaction'
-import useGlobalState from '../hooks/useGlobalState'
 
-import ERC20Abi from '../contracts/ERC20.abi'
+import mUMAMIAutocompounderAddress from '../contracts/mUMAMIAutocompounder.address'
 import MarinateV2StrategyABI from '../contracts/MarinateV2Strategy.abi'
+import ERC20Abi from '../contracts/ERC20.abi'
 
-const farmAddress = '0x50B97c26c1F866156Da1E07Bc47b35d850d34EBa'
+// testnet address 0x50B97c26c1F866156Da1E07Bc47b35d850d34EBa
+
+const farmAddress = mUMAMIAutocompounderAddress
 const farmAbi = MarinateV2StrategyABI
-const farmName = 'Stake mUMAMI'
+const farmName = 'Autocompound $mUMAMI'
 
 export default function MarinateAutocompounder() {
   const initState: {
@@ -32,6 +34,7 @@ export default function MarinateAutocompounder() {
     farmTokensPerShare: null,
     farmBalance: null,
     farmShareBalance: null,
+    totalDeposits: null,
     isInitialized: false,
   }
 
@@ -39,23 +42,11 @@ export default function MarinateAutocompounder() {
   const [tokenAddr, setTokenAddr] = React.useState<string | null>(null)
   const [action, setAction] = React.useState<'deposit' | 'withdraw'>('deposit')
 
-  const [{ horseysauce }] = useGlobalState()
   const userAddress = useUserAddress()
   const userSigner = useUserSigner()
   const transaction = useTransaction()
   const farmContract = useExternalContractLoader(farmAddress, farmAbi)
   const tokenContract = useExternalContractLoader(tokenAddr, ERC20Abi)
-
-  const totalValueStaked = React.useMemo(() => {
-    if (!horseysauce) {
-      return null
-    }
-
-    return (
-      horseysauce.strategies.find((strat) => strat.address === farmAddress)
-        ?.totalValueStaked || null
-    )
-  }, [horseysauce])
 
   const handleTokenAddr = React.useCallback(async () => {
     if (!farmContract) {
@@ -88,6 +79,7 @@ export default function MarinateAutocompounder() {
         farmTotalDeposits,
         shareBalance,
         farmTokensPerShare,
+        totalDeposits,
       ] = await Promise.all([
         tokenContract.balanceOf(userAddress),
         tokenContract.name(),
@@ -96,9 +88,8 @@ export default function MarinateAutocompounder() {
         farmContract.symbol(),
         farmContract.totalDeposits(),
         farmContract.balanceOf(userAddress),
-        farmContract.getDepositTokensForShares(
-          BigNumber.from(BigInt(1000000000000000000))
-        ),
+        farmContract.getDepositTokensForShares(parseUnits('1.0', 9)),
+        farmContract.totalDeposits,
       ])
 
       const farmUnderlyingTokensAvailable =
@@ -106,18 +97,20 @@ export default function MarinateAutocompounder() {
       const isApproved = !BigNumber.from('0').eq(approved)
 
       setState({
-        tokenBalance: formatEther(tokenBalance),
+        tokenBalance: formatUnits(tokenBalance, 9),
         tokenName,
         tokenSymbol,
         isApproved,
         farmSymbol,
-        farmTotalDeposits: formatEther(farmTotalDeposits),
-        farmBalance: formatEther(shareBalance),
-        farmUnderlyingTokensAvailable: formatEther(
-          farmUnderlyingTokensAvailable
+        farmTotalDeposits: formatUnits(farmTotalDeposits, 9),
+        farmBalance: formatUnits(shareBalance, 9),
+        farmUnderlyingTokensAvailable: formatUnits(
+          farmUnderlyingTokensAvailable,
+          9
         ),
-        farmShareBalance: formatEther(shareBalance),
-        farmTokensPerShare: formatEther(farmTokensPerShare),
+        farmShareBalance: formatUnits(shareBalance, 9),
+        farmTokensPerShare: formatUnits(farmTokensPerShare, 9),
+        totalDeposits,
         isInitialized: true,
       })
     } catch (err) {
@@ -138,7 +131,7 @@ export default function MarinateAutocompounder() {
       try {
         const data = await farmContract.interface.encodeFunctionData(
           'deposit',
-          [parseEther(String(depositAmount))]
+          [parseUnits(String(depositAmount), 9)]
         )
 
         await transaction(
@@ -152,9 +145,7 @@ export default function MarinateAutocompounder() {
           autoDismiss: 2000,
         })
       } finally {
-        setTimeout(() => {
-          resetForm()
-        }, 10000)
+        resetForm()
       }
     },
     [state.isApproved, farmContract, userSigner, transaction]
@@ -167,7 +158,7 @@ export default function MarinateAutocompounder() {
       }
 
       try {
-        const amount = parseEther(String(Number(withdrawAmount)))
+        const amount = parseUnits(String(Number(withdrawAmount)), 9)
         const data = await farmContract.interface.encodeFunctionData(
           'withdraw',
           [amount]
@@ -198,7 +189,7 @@ export default function MarinateAutocompounder() {
     try {
       const data = await tokenContract.interface.encodeFunctionData('approve', [
         farmAddress,
-        parseEther(String(Number.MAX_SAFE_INTEGER)),
+        parseUnits(String(Number.MAX_SAFE_INTEGER), 9),
       ])
 
       await transaction(
@@ -231,11 +222,17 @@ export default function MarinateAutocompounder() {
     }
 
     handleState()
-
-    const pollFarmState = setInterval(handleState, 30000)
-
-    return () => clearInterval(pollFarmState)
   }, [tokenAddr, handleState])
+
+  React.useEffect(() => {
+    if (!state.isInitialized) {
+      return
+    }
+
+    const interval = setInterval(handleState, 30000)
+
+    return () => clearInterval(interval)
+  }, [state.isInitialized, handleState])
 
   if (!state.isInitialized) {
     return null
@@ -258,8 +255,8 @@ export default function MarinateAutocompounder() {
 
       <DashboardCard.Content>
         <p className="mt-4">
-          Stake your ${state.tokenSymbol} for ${state.farmSymbol} to
-          automatically compound your staking rewards
+          Stake your ${state.tokenSymbol} for ${state.farmSymbol} to start
+          autocompounding your ${state.tokenSymbol} for higher APY.
         </p>
 
         <div className="mt-8">
@@ -272,11 +269,11 @@ export default function MarinateAutocompounder() {
                   <span> ${state.tokenSymbol}</span>
                 </>
               ) : null}
-              {Number(totalValueStaked) ? (
+              {Number(state.totalDeposits) ? (
                 <>
                   <span> === </span>
                   <span>
-                    ${Number(totalValueStaked).toLocaleString('en-us')}
+                    ${Number(state.totalDeposits).toLocaleString('en-us')}
                   </span>
                 </>
               ) : null}
@@ -396,7 +393,8 @@ export default function MarinateAutocompounder() {
                   <div>
                     <span>GET BACK: </span>
                     <span>
-                      {state.farmUnderlyingTokensAvailable} ${state.tokenSymbol}
+                      {Number(state.farmUnderlyingTokensAvailable).toFixed(3)} $
+                      {state.tokenSymbol}
                     </span>
                   </div>
 

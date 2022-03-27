@@ -276,14 +276,21 @@ export default function CheemsEthOldFarm() {
     handleTokenAddr()
     handleState()
     handleRewardSymbol()
-
-    const pollFarmState = setInterval(handleState, 30000)
-    return () => clearInterval(pollFarmState)
   }, [handleTokenAddr, handleState, handleRewardSymbol])
 
   React.useEffect(() => {
     initialize()
   }, [initialize])
+
+  React.useEffect(() => {
+    if (!state.isInitialized) {
+      return
+    }
+
+    const interval = setInterval(handleState, 30000)
+
+    return () => clearInterval(interval)
+  }, [state.isInitialized, handleState])
 
   if (!state.isInitialized) {
     return null
