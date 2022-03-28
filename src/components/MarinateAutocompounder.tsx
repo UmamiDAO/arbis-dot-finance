@@ -1,5 +1,5 @@
 import React from 'react'
-import { formatEther, parseEther } from '@ethersproject/units'
+import { parseUnits, formatUnits } from '@ethersproject/units'
 import { BigNumber } from 'ethers'
 import { Formik, Form, Field } from 'formik'
 
@@ -10,85 +10,51 @@ import useUserAddress from '../hooks/useUserAddress'
 import useUserSigner from '../hooks/useUserSigner'
 import useExternalContractLoader from '../hooks/useExternalContractLoader'
 import useTransaction, { notify } from '../hooks/useTransaction'
-import useGlobalState from '../hooks/useGlobalState'
 
+import mUMAMIAutocompounderAddress from '../contracts/mUMAMIAutocompounder.address'
+import MarinateV2StrategyABI from '../contracts/MarinateV2Strategy.abi'
 import ERC20Abi from '../contracts/ERC20.abi'
-import USDCETHStrategyAddress from '../contracts/USDCETHStrategy.address'
 
-type Props = {
-  farmName: string
-  farmAddress: string
-  farmAbi: any
-}
+// testnet address 0x50B97c26c1F866156Da1E07Bc47b35d850d34EBa
 
-export default function SushiFarm({ farmName, farmAddress, farmAbi }: Props) {
+const farmAddress = mUMAMIAutocompounderAddress
+const farmAbi = MarinateV2StrategyABI
+const farmName = 'Step 1. Autocompound $mUMAMI'
+
+export default function MarinateAutocompounder() {
   const initState: {
     [k: string]: string | number | boolean | null
   } = {
     tokenBalance: null,
     tokenName: null,
     tokenSymbol: null,
-    tokenTotalSupply: null,
     isApproved: false,
-    farmReward: null,
     farmSymbol: null,
     farmTotalDeposits: null,
     farmTokensPerShare: null,
-    farmUnderlyingTokensAvailable: null,
+    farmBalance: null,
     farmShareBalance: null,
+    totalDeposits: null,
     isInitialized: false,
   }
 
   const [state, setState] = React.useState(initState)
   const [tokenAddr, setTokenAddr] = React.useState<string | null>(null)
-  const [rewardTokenAddr, setRewardTokenAddr] = React.useState<string | null>(
-    null
-  )
-  const [rewardSymbol, setRewardSymbol] = React.useState<string | null>(null)
   const [action, setAction] = React.useState<'deposit' | 'withdraw'>('deposit')
 
-  const [{ horseysauce }] = useGlobalState()
   const userAddress = useUserAddress()
   const userSigner = useUserSigner()
   const transaction = useTransaction()
   const farmContract = useExternalContractLoader(farmAddress, farmAbi)
   const tokenContract = useExternalContractLoader(tokenAddr, ERC20Abi)
-  const rewardContract = useExternalContractLoader(rewardTokenAddr, ERC20Abi)
-
-  const totalValueStaked = React.useMemo(() => {
-    if (!horseysauce) {
-      return null
-    }
-
-    return (
-      horseysauce.strategies.find((strat) => strat.address === farmAddress)
-        ?.totalValueStaked || null
-    )
-  }, [horseysauce, farmAddress])
-
-  const reward = React.useMemo(() => {
-    if (!state.farmReward) {
-      return '0'
-    }
-
-    const fixedNum = Number(state.farmReward).toFixed(6)
-
-    return Number(fixedNum) / 200
-  }, [state.farmReward])
 
   const handleTokenAddr = React.useCallback(async () => {
     if (!farmContract) {
       return
     }
     try {
-      const [addr, rewardAddr] = await Promise.all([
-        farmContract.depositToken(),
-        farmAddress === USDCETHStrategyAddress
-          ? farmContract.rewardToken()
-          : farmContract.rewardToken1,
-      ])
+      const addr = await farmContract.depositToken
       setTokenAddr(addr)
-      setRewardTokenAddr(rewardAddr)
     } catch (err) {
       console.log({
         err,
@@ -97,23 +63,7 @@ export default function SushiFarm({ farmName, farmAddress, farmAbi }: Props) {
         state,
       })
     }
-  }, [farmContract, state, farmName, farmAddress])
-
-  const handleRewardSymbol = React.useCallback(async () => {
-    if (!rewardContract || !rewardTokenAddr) {
-      return null
-    }
-    try {
-      const symbol = await rewardContract.symbol()
-      setRewardSymbol(symbol)
-    } catch (err) {
-      console.log({
-        err,
-        callingFunc: 'handleRewardSymbol',
-        callingFarmName: farmName,
-      })
-    }
-  }, [rewardContract, farmName, rewardTokenAddr])
+  }, [farmContract, state])
 
   const handleState = React.useCallback(async () => {
     if (!tokenAddr || !farmContract || !tokenContract || !userAddress) {
@@ -124,24 +74,22 @@ export default function SushiFarm({ farmName, farmAddress, farmAbi }: Props) {
         tokenBalance,
         tokenName,
         tokenSymbol,
-        tokenTotalSupply,
         approved,
-        farmReward,
         farmSymbol,
         farmTotalDeposits,
-        farmTokensPerShare,
         shareBalance,
+        farmTokensPerShare,
+        totalDeposits,
       ] = await Promise.all([
         tokenContract.balanceOf(userAddress),
         tokenContract.name(),
         tokenContract.symbol(),
-        tokenContract.totalSupply(),
         tokenContract.allowance(userAddress, farmAddress),
-        farmContract.checkReward(),
         farmContract.symbol(),
         farmContract.totalDeposits(),
-        farmContract.getDepositTokensForShares(BigInt(1000000000000000000)),
         farmContract.balanceOf(userAddress),
+        farmContract.getDepositTokensForShares(parseUnits('1.0', 9)),
+        farmContract.totalDeposits,
       ])
 
       const farmUnderlyingTokensAvailable =
@@ -149,19 +97,20 @@ export default function SushiFarm({ farmName, farmAddress, farmAbi }: Props) {
       const isApproved = !BigNumber.from('0').eq(approved)
 
       setState({
-        tokenBalance: formatEther(tokenBalance),
+        tokenBalance: formatUnits(tokenBalance, 9),
         tokenName,
         tokenSymbol,
-        tokenTotalSupply,
         isApproved,
-        farmReward: formatEther(farmReward),
         farmSymbol,
-        farmTotalDeposits: formatEther(farmTotalDeposits),
-        farmTokensPerShare: formatEther(farmTokensPerShare),
-        farmUnderlyingTokensAvailable: formatEther(
-          farmUnderlyingTokensAvailable
+        farmTotalDeposits: formatUnits(farmTotalDeposits, 9),
+        farmBalance: formatUnits(shareBalance, 9),
+        farmUnderlyingTokensAvailable: formatUnits(
+          farmUnderlyingTokensAvailable,
+          9
         ),
-        farmShareBalance: formatEther(shareBalance),
+        farmShareBalance: formatUnits(shareBalance, 9),
+        farmTokensPerShare: formatUnits(farmTokensPerShare, 9),
+        totalDeposits,
         isInitialized: true,
       })
     } catch (err) {
@@ -171,14 +120,7 @@ export default function SushiFarm({ farmName, farmAddress, farmAbi }: Props) {
         callingFarmName: farmName,
       })
     }
-  }, [
-    farmAddress,
-    tokenAddr,
-    farmContract,
-    tokenContract,
-    userAddress,
-    farmName,
-  ])
+  }, [tokenAddr, farmContract, tokenContract, userAddress])
 
   const handleDeposit = React.useCallback(
     async ({ depositAmount }, { resetForm }) => {
@@ -187,10 +129,9 @@ export default function SushiFarm({ farmName, farmAddress, farmAbi }: Props) {
       }
 
       try {
-        const amount = parseEther(String(Number(depositAmount).toFixed(8)))
         const data = await farmContract.interface.encodeFunctionData(
           'deposit',
-          [amount]
+          [parseUnits(String(depositAmount), 9)]
         )
 
         await transaction(
@@ -201,11 +142,13 @@ export default function SushiFarm({ farmName, farmAddress, farmAbi }: Props) {
           eventCode: 'txError',
           type: 'error',
           message: (err as Error).message,
-          autoDismiss: 10000,
+          autoDismiss: 2000,
         })
+      } finally {
+        resetForm()
       }
     },
-    [state.isApproved, farmContract, userSigner, transaction, farmAddress]
+    [state.isApproved, farmContract, userSigner, transaction]
   )
 
   const handleWithdraw = React.useCallback(
@@ -215,7 +158,7 @@ export default function SushiFarm({ farmName, farmAddress, farmAbi }: Props) {
       }
 
       try {
-        const amount = parseEther(String(Number(withdrawAmount)))
+        const amount = parseUnits(String(Number(withdrawAmount)), 9)
         const data = await farmContract.interface.encodeFunctionData(
           'withdraw',
           [amount]
@@ -229,27 +172,24 @@ export default function SushiFarm({ farmName, farmAddress, farmAbi }: Props) {
           eventCode: 'txError',
           type: 'error',
           message: (err as Error).message,
-          autoDismiss: 10000,
+          autoDismiss: 2000,
         })
+      } finally {
+        resetForm()
       }
     },
-    [state.isApproved, farmContract, userSigner, transaction, farmAddress]
+    [state.isApproved, farmContract, userSigner, transaction]
   )
 
   const handleApproval = React.useCallback(async () => {
-    if (
-      !userSigner ||
-      !tokenContract ||
-      !state.tokenTotalSupply ||
-      !tokenAddr
-    ) {
+    if (!userSigner || !tokenContract || !tokenAddr) {
       return
     }
 
     try {
       const data = await tokenContract.interface.encodeFunctionData('approve', [
         farmAddress,
-        state.tokenTotalSupply,
+        parseUnits(String(Number.MAX_SAFE_INTEGER), 9),
       ])
 
       await transaction(
@@ -260,27 +200,15 @@ export default function SushiFarm({ farmName, farmAddress, farmAbi }: Props) {
         eventCode: 'txError',
         type: 'error',
         message: (err as Error).message,
-        autoDismiss: 10000,
+        autoDismiss: 2000,
+      })
+      console.log({
+        err,
+        callingFunc: 'handleApproval',
+        callingFarmName: farmName,
       })
     }
-  }, [userSigner, tokenContract, state, transaction, tokenAddr, farmAddress])
-
-  const handleCompound = React.useCallback(async () => {
-    if (!userSigner || !farmContract) {
-      return
-    }
-    try {
-      const data = await farmContract.reinvest()
-      transaction(userSigner.sendTransaction({ to: farmAddress, data } as any))
-    } catch (err) {
-      notify.notification({
-        eventCode: 'txError',
-        type: 'error',
-        message: (err as Error).message,
-        autoDismiss: 10000,
-      })
-    }
-  }, [userSigner, farmContract, transaction, farmAddress])
+  }, [userSigner, tokenContract, transaction, tokenAddr])
 
   React.useEffect(() => {
     if (tokenAddr === null) {
@@ -289,20 +217,12 @@ export default function SushiFarm({ farmName, farmAddress, farmAbi }: Props) {
   }, [tokenAddr, handleTokenAddr])
 
   React.useEffect(() => {
-    if (rewardSymbol === null) {
-      handleRewardSymbol()
-    }
-  }, [rewardSymbol, handleRewardSymbol])
-
-  React.useEffect(() => {
     if (!tokenAddr) {
       return
     }
 
-    if (!state.isInitialized) {
-      handleState()
-    }
-  }, [tokenAddr, state, handleState])
+    handleState()
+  }, [tokenAddr, handleState])
 
   React.useEffect(() => {
     if (!state.isInitialized) {
@@ -335,12 +255,8 @@ export default function SushiFarm({ farmName, farmAddress, farmAbi }: Props) {
 
       <DashboardCard.Content>
         <p className="mt-4">
-          <span>
-            Stake your ${state.tokenSymbol} for ${state.tokenName} to earn
-            passive ${state.farmSymbol}&nbsp;
-          </span>
-
-          <span>in Arbis to let them compound automatically!</span>
+          Stake your ${state.tokenSymbol} for ${state.farmSymbol} to start
+          autocompounding your ${state.tokenSymbol} for higher APY.
         </p>
 
         <div className="mt-8">
@@ -353,11 +269,11 @@ export default function SushiFarm({ farmName, farmAddress, farmAbi }: Props) {
                   <span> ${state.tokenSymbol}</span>
                 </>
               ) : null}
-              {Number(totalValueStaked) ? (
+              {Number(state.totalDeposits) ? (
                 <>
                   <span> === </span>
                   <span>
-                    ${Number(totalValueStaked).toLocaleString('en-us')}
+                    ${Number(state.totalDeposits).toLocaleString('en-us')}
                   </span>
                 </>
               ) : null}
@@ -477,7 +393,8 @@ export default function SushiFarm({ farmName, farmAddress, farmAbi }: Props) {
                   <div>
                     <span>GET BACK: </span>
                     <span>
-                      {state.farmUnderlyingTokensAvailable} ${state.tokenSymbol}
+                      {Number(state.farmUnderlyingTokensAvailable).toFixed(3)} $
+                      {state.tokenSymbol}
                     </span>
                   </div>
 
@@ -515,26 +432,7 @@ export default function SushiFarm({ farmName, farmAddress, farmAbi }: Props) {
             </Formik>
           </div>
         ) : null}
-
-        <div className="mt-4">
-          <DashboardCard.Action
-            color="black"
-            disabled={!Number(state.farmReward)}
-            onClick={() => handleCompound()}
-          >
-            Compound
-          </DashboardCard.Action>
-        </div>
       </DashboardCard.Content>
-
-      <DashboardCard.More>
-        <strong>Current Reward(s):</strong>
-
-        <div className="flex justify-between">
-          <div>{reward}</div>
-          <div>{rewardSymbol}</div>
-        </div>
-      </DashboardCard.More>
     </DashboardCard>
   )
 }

@@ -7,6 +7,25 @@ import GlobalContext, {
   initState,
 } from './GlobalContext'
 
+const defaultStats = {
+  strategies: [],
+  stArbisEth: {
+    apr: '0',
+    stakedTotal: '0',
+    underlyingTokenPrice: '0',
+    totalValueStaked: '0',
+    lpTotalValue: '0',
+  },
+  stArbis: {
+    apr: '0',
+    totalValueStaked: '0',
+  },
+  umamiPerDay: 0,
+  umamiLPTokenValue: 0,
+  arbisPrice: '0',
+  tvl: '0',
+}
+
 const { Provider } = GlobalContext
 
 type Props = {
@@ -31,21 +50,30 @@ export default function GlobalProvider({ children }: Props) {
 
   const fetchAPIData = React.useCallback(async () => {
     try {
-      const [coingecko, horsey] = await Promise.all([
+      const [coingecko, horseysauce] = await Promise.all([
         axios('https://api.coingecko.com/api/v3/coins/arbis-finance'),
         axios('https://horseysauce.xyz'),
       ])
-      console.log(horsey)
       dispatch({
         type: 'horseysauce',
         payload: {
           horseysauce: {
+            ...horseysauce.data,
             arbisPrice: coingecko.data.market_data.current_price.usd,
-            ...horsey.data,
+            tvl:
+              horseysauce.data.tvl ||
+              String(
+                Number(coingecko.data.market_data.total_supply) *
+                  Number(coingecko.data.market_data.current_price.usd)
+              ),
           },
         },
       })
     } catch (err) {
+      dispatch({
+        type: 'horseysauce',
+        payload: { horseysauce: { ...defaultStats } },
+      })
       console.log(err)
     }
   }, [dispatch])

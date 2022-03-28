@@ -83,7 +83,11 @@ export default function CheemsEth2Farm() {
       setTokenAddr(addr)
       setRewardTokenAddr(rewardAddr)
     } catch (err) {
-      console.log(err)
+      console.log({
+        err,
+        callingFunc: 'handleTokenAddr',
+        callingFarmName: 'CheemsEth2',
+      })
     }
   }, [farmContract])
 
@@ -95,7 +99,11 @@ export default function CheemsEth2Farm() {
       const symbol = await rewardContract.symbol()
       setRewardSymbol(symbol)
     } catch (err) {
-      console.log(err)
+      console.log({
+        err,
+        callingFunc: 'handleRewardSymbol',
+        callingFarmName: 'CheemsEth2',
+      })
     }
   }, [rewardContract])
 
@@ -152,7 +160,11 @@ export default function CheemsEth2Farm() {
         isInitialized: true,
       })
     } catch (err) {
-      console.log(err)
+      console.log({
+        err,
+        callingFunc: 'handleState',
+        callingFarmName: 'CheemsEth2',
+      })
     }
   }, [tokenAddr, farmContract, tokenContract, userAddress])
 
@@ -172,14 +184,16 @@ export default function CheemsEth2Farm() {
         await transaction(
           userSigner.sendTransaction({ to: farmAddress, data } as any)
         )
-      } finally {
-        setTimeout(() => {
-          resetForm()
-          handleState()
-        }, 10000)
+      } catch (err) {
+        notify.notification({
+          eventCode: 'txError',
+          type: 'error',
+          message: (err as Error).message,
+          autoDismiss: 10000,
+        })
       }
     },
-    [state.isApproved, farmContract, userSigner, transaction, handleState]
+    [state.isApproved, farmContract, userSigner, transaction]
   )
 
   const handleWithdraw = React.useCallback(
@@ -198,14 +212,16 @@ export default function CheemsEth2Farm() {
         await transaction(
           userSigner.sendTransaction({ to: farmAddress, data } as any)
         )
-      } finally {
-        setTimeout(() => {
-          resetForm()
-          handleState()
-        }, 10000)
+      } catch (err) {
+        notify.notification({
+          eventCode: 'txError',
+          type: 'error',
+          message: (err as Error).message,
+          autoDismiss: 10000,
+        })
       }
     },
-    [state.isApproved, farmContract, userSigner, transaction, handleState]
+    [state.isApproved, farmContract, userSigner, transaction]
   )
 
   const handleApproval = React.useCallback(async () => {
@@ -227,21 +243,6 @@ export default function CheemsEth2Farm() {
       await transaction(
         userSigner.sendTransaction({ to: tokenAddr, data } as any)
       )
-    } finally {
-      setTimeout(() => {
-        handleState()
-      }, 10000)
-    }
-  }, [userSigner, tokenContract, state, transaction, handleState, tokenAddr])
-
-  const handleCompound = React.useCallback(async () => {
-    if (!userSigner || !farmContract) {
-      return
-    }
-    try {
-      const data = await farmContract.reinvest()
-      transaction(userSigner.sendTransaction({ to: farmAddress, data } as any))
-      setTimeout(() => handleState(), 10000)
     } catch (err) {
       notify.notification({
         eventCode: 'txError',
@@ -250,7 +251,24 @@ export default function CheemsEth2Farm() {
         autoDismiss: 10000,
       })
     }
-  }, [userSigner, farmContract, transaction, handleState])
+  }, [userSigner, tokenContract, state, transaction, tokenAddr])
+
+  const handleCompound = React.useCallback(async () => {
+    if (!userSigner || !farmContract) {
+      return
+    }
+    try {
+      const data = await farmContract.reinvest()
+      transaction(userSigner.sendTransaction({ to: farmAddress, data } as any))
+    } catch (err) {
+      notify.notification({
+        eventCode: 'txError',
+        type: 'error',
+        message: (err as Error).message,
+        autoDismiss: 10000,
+      })
+    }
+  }, [userSigner, farmContract, transaction])
 
   const initialize = React.useCallback(() => {
     handleTokenAddr()
@@ -261,6 +279,16 @@ export default function CheemsEth2Farm() {
   React.useEffect(() => {
     initialize()
   }, [initialize])
+
+  React.useEffect(() => {
+    if (!state.isInitialized) {
+      return
+    }
+
+    const interval = setInterval(handleState, 30000)
+
+    return () => clearInterval(interval)
+  }, [state.isInitialized, handleState])
 
   if (!state.isInitialized) {
     return null

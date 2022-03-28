@@ -9,7 +9,7 @@ import Selector from './Selector'
 import useUserAddress from '../hooks/useUserAddress'
 import useUserSigner from '../hooks/useUserSigner'
 import useExternalContractLoader from '../hooks/useExternalContractLoader'
-import useTransaction from '../hooks/useTransaction'
+import useTransaction, { notify } from '../hooks/useTransaction'
 import useGlobalState from '../hooks/useGlobalState'
 
 import StArbisAddress2 from '../contracts/StArbis2.address'
@@ -195,7 +195,11 @@ export default function StArbisFarm() {
         },
       })
     } catch (err) {
-      console.log(err)
+      console.log({
+        err,
+        callingFunc: 'populateState',
+        callingFarmName: 'Arbis',
+      })
       dispatch({ type: 'error' })
     }
   }, [farmContract, tokenContract, userAddress, state])
@@ -215,14 +219,16 @@ export default function StArbisFarm() {
         await transaction(
           userSigner.sendTransaction({ to: farmAddress, data } as any)
         )
-      } finally {
-        setTimeout(() => {
-          resetForm()
-          populateState()
-        }, 10000)
+      } catch (err) {
+        notify.notification({
+          eventCode: 'txError',
+          type: 'error',
+          message: (err as Error).message,
+          autoDismiss: 10000,
+        })
       }
     },
-    [state.isApproved, farmContract, userSigner, transaction, populateState]
+    [state.isApproved, farmContract, userSigner, transaction]
   )
 
   const handleWithdraw = React.useCallback(
@@ -244,14 +250,16 @@ export default function StArbisFarm() {
             data,
           } as any)
         )
-      } finally {
-        setTimeout(() => {
-          resetForm()
-          populateState()
-        }, 10000)
+      } catch (err) {
+        notify.notification({
+          eventCode: 'txError',
+          type: 'error',
+          message: (err as Error).message,
+          autoDismiss: 10000,
+        })
       }
     },
-    [state.isApproved, farmContract, userSigner, transaction, populateState]
+    [state.isApproved, farmContract, userSigner, transaction]
   )
 
   const handleApproval = React.useCallback(async () => {
@@ -273,12 +281,15 @@ export default function StArbisFarm() {
       await transaction(
         userSigner.sendTransaction({ to: state.tokenAddress, data } as any)
       )
-    } finally {
-      setTimeout(() => {
-        populateState()
-      }, 10000)
+    } catch (err) {
+      notify.notification({
+        eventCode: 'txError',
+        type: 'error',
+        message: (err as Error).message,
+        autoDismiss: 10000,
+      })
     }
-  }, [userSigner, tokenContract, state, transaction, populateState])
+  }, [userSigner, tokenContract, state, transaction])
 
   const handleCollect = React.useCallback(async () => {
     if (!state.isApproved || !userSigner || !farmContract) {
@@ -294,7 +305,12 @@ export default function StArbisFarm() {
         userSigner.sendTransaction({ to: farmAddress, data } as any)
       )
     } catch (err) {
-      console.log(err)
+      notify.notification({
+        eventCode: 'txError',
+        type: 'error',
+        message: (err as Error).message,
+        autoDismiss: 10000,
+      })
     }
   }, [state.isApproved, userSigner, transaction, farmContract])
 
@@ -328,6 +344,15 @@ export default function StArbisFarm() {
   React.useEffect(() => {
     initialize()
   }, [initialize])
+
+  React.useEffect(() => {
+    if (state.status !== 'resolved') {
+      return
+    }
+    const interval = setInterval(populateState, 30000)
+
+    return () => clearInterval(interval)
+  }, [state.status, populateState])
 
   if (state.status !== 'resolved') {
     return null
