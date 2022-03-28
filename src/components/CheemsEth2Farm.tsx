@@ -377,7 +377,7 @@ export default function CheemsEth2Farm() {
                         onClick={() =>
                           setFieldValue(
                             'depositAmount',
-                            Number(state.tokenBalance).toFixed(9)
+                            Number(state.tokenBalance)
                           )
                         }
                         className="text-primary"
@@ -440,7 +440,7 @@ export default function CheemsEth2Farm() {
                       onClick={() =>
                         setFieldValue(
                           'withdrawAmount',
-                          Number(state.farmShareBalance).toFixed(9)
+                          Number(state.farmShareBalance)
                         )
                       }
                       className="text-primary"

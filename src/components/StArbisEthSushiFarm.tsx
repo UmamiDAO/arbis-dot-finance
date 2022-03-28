@@ -367,7 +367,7 @@ export default function StArbisEthSushiFarm() {
                         onClick={() =>
                           setFieldValue(
                             'depositAmount',
-                            Number(state.tokenBalance).toFixed(9)
+                            Number(state.tokenBalance)
                           )
                         }
                         className="text-primary"
@@ -429,7 +429,7 @@ export default function StArbisEthSushiFarm() {
                       onClick={() =>
                         setFieldValue(
                           'withdrawAmount',
-                          Number(state.shareBalance).toFixed(9)
+                          Number(state.shareBalance)
                         )
                       }
                       className="text-primary"

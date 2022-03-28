@@ -444,7 +444,7 @@ export default function StArbisFarm() {
                         onClick={() =>
                           setFieldValue(
                             'depositAmount',
-                            Number(state.tokenBalance).toFixed(9)
+                            Number(state.tokenBalance)
                           )
                         }
                         className="text-primary"
@@ -506,7 +506,7 @@ export default function StArbisFarm() {
                       onClick={() =>
                         setFieldValue(
                           'withdrawAmount',
-                          Number(state.shareBalance).toFixed(9)
+                          Number(state.shareBalance)
                         )
                       }
                       className="text-primary"
