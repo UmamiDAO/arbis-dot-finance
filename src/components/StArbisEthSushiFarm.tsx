@@ -10,7 +10,7 @@ import useGlobalState from '../hooks/useGlobalState'
 import useUserAddress from '../hooks/useUserAddress'
 import useUserSigner from '../hooks/useUserSigner'
 import useExternalContractLoader from '../hooks/useExternalContractLoader'
-import useTransaction from '../hooks/useTransaction'
+import useTransaction, { notify } from '../hooks/useTransaction'
 
 import StArbisEthLPAddress from '../contracts/stARBISETHLP.address'
 import StArbisAbi from '../contracts/StArbis.abi'
@@ -132,14 +132,13 @@ export default function StArbisEthSushiFarm() {
         avaiableZ20,
       })
     } catch (err) {
-      console.log(err)
+      console.log({
+        err,
+        callingFunc: 'handleState',
+        callingFarmName: 'Arbis/ETH Sushi LP',
+      })
     }
   }, [farmContract, tokenAddr, tokenContract, userAddress])
-
-  const initialize = React.useCallback(() => {
-    handleTokenAddr()
-    handleState()
-  }, [handleTokenAddr, handleState])
 
   const handleDeposit = React.useCallback(
     async ({ depositAmount }, { resetForm }) => {
@@ -156,14 +155,16 @@ export default function StArbisEthSushiFarm() {
         await transaction(
           userSigner.sendTransaction({ to: farmAddress, data } as any)
         )
-      } finally {
-        setTimeout(() => {
-          resetForm()
-          handleState()
-        }, 10000)
+      } catch (err) {
+        notify.notification({
+          eventCode: 'txError',
+          type: 'error',
+          message: (err as Error).message,
+          autoDismiss: 10000,
+        })
       }
     },
-    [state.isApproved, farmContract, userSigner, transaction, handleState]
+    [state.isApproved, farmContract, userSigner, transaction]
   )
 
   const handleWithdraw = React.useCallback(
@@ -181,14 +182,16 @@ export default function StArbisEthSushiFarm() {
         await transaction(
           userSigner.sendTransaction({ to: farmAddress, data } as any)
         )
-      } finally {
-        setTimeout(() => {
-          resetForm()
-          handleState()
-        }, 10000)
+      } catch (err) {
+        notify.notification({
+          eventCode: 'txError',
+          type: 'error',
+          message: (err as Error).message,
+          autoDismiss: 10000,
+        })
       }
     },
-    [state.isApproved, farmContract, userSigner, transaction, handleState]
+    [state.isApproved, farmContract, userSigner, transaction]
   )
 
   const handleApproval = React.useCallback(async () => {
@@ -210,12 +213,15 @@ export default function StArbisEthSushiFarm() {
       await transaction(
         userSigner.sendTransaction({ to: tokenAddr, data } as any)
       )
-    } finally {
-      setTimeout(() => {
-        handleState()
-      }, 10000)
+    } catch (err) {
+      notify.notification({
+        eventCode: 'txError',
+        type: 'error',
+        message: (err as Error).message,
+        autoDismiss: 10000,
+      })
     }
-  }, [userSigner, tokenContract, state, transaction, handleState, tokenAddr])
+  }, [userSigner, tokenContract, state, transaction, tokenAddr])
 
   const handleCollect = React.useCallback(async () => {
     if (!state.isApproved || !userSigner || !farmContract) {
@@ -229,7 +235,12 @@ export default function StArbisEthSushiFarm() {
       )
       transaction(userSigner.sendTransaction({ to: farmAddress, data } as any))
     } catch (err) {
-      console.log(err)
+      notify.notification({
+        eventCode: 'txError',
+        type: 'error',
+        message: (err as Error).message,
+        autoDismiss: 10000,
+      })
     }
   }, [state.isApproved, userSigner, transaction, farmContract])
 
@@ -249,9 +260,24 @@ export default function StArbisEthSushiFarm() {
     )
   }, [state])
 
+  const initialize = React.useCallback(() => {
+    handleTokenAddr()
+    handleState()
+  }, [handleTokenAddr, handleState])
+
   React.useEffect(() => {
     initialize()
   }, [initialize])
+
+  React.useEffect(() => {
+    if (!state.initialized) {
+      return
+    }
+
+    const interval = setInterval(handleState, 30000)
+
+    return () => clearInterval(interval)
+  }, [state.initialized, handleState])
 
   if (!state.initialized) {
     return null

@@ -3,8 +3,14 @@ import { useSearchParams } from 'react-router-dom'
 import Selector from './Selector'
 import ArbisFarms from './ArbisFarms'
 import SushiFarms from './SushiFarms'
+import MarinatedUmamiFarms from './MarinatedUmamiFarms'
 
-const categories = ['arbis', 'sushi', /*  'swapr', 'nyan', */ 'legacy']
+const categories = [
+  'arbis',
+  'sushi',
+  'mumami',
+  /*  'swapr', 'nyan', */ 'legacy',
+]
 
 export default function Farms() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -15,6 +21,25 @@ export default function Farms() {
       setSearchParams({ category: 'arbis' })
     }
   }, [category, setSearchParams])
+
+  const farmsDisplay = React.useMemo(() => {
+    switch (category) {
+      case 'arbis':
+        return <ArbisFarms />
+      case 'sushi':
+        return <SushiFarms />
+      case 'mumami':
+        return <MarinatedUmamiFarms />
+      default:
+        return (
+          <section className="flex items-center justify-center h-64">
+            <h2 className="text-center text-3xl font-extra-bold">
+              Coming Soon
+            </h2>
+          </section>
+        )
+    }
+  }, [category])
 
   React.useEffect(() => {
     fallbackParams()
@@ -29,7 +54,7 @@ export default function Farms() {
           {categories.map((item) => (
             <Selector.Item
               key={item}
-              text={`${item} farms`}
+              text={`${item.replace('-', ' ')}`}
               onClick={() => {
                 if (item === 'legacy') {
                   window.open(
@@ -45,13 +70,7 @@ export default function Farms() {
           ))}
         </Selector>
       </nav>
-      {category === 'arbis' ? <ArbisFarms /> : null}
-      {category === 'sushi' ? <SushiFarms /> : null}
-      {!['arbis', 'sushi'].includes(category) ? (
-        <section className="flex items-center justify-center h-64">
-          <h2 className="text-center text-3xl font-extra-bold">Coming Soon</h2>
-        </section>
-      ) : null}
+      {farmsDisplay}
     </main>
   )
 }

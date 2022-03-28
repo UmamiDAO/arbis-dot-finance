@@ -23,16 +23,8 @@ export default function ArbisFarms() {
     },
     slides: { perView: 3, spacing: 10 },
     slideChanged() {
-      // @ts-ignore
-      setInitPosition(!Boolean(slider.current.track.details.rel))
-      if (
-        // @ts-ignore
-        slider.current.track.details.abs === 1
-      ) {
-        setLastPosition(true)
-      } else {
-        setLastPosition(false)
-      }
+      setInitPosition(!Boolean(slider.current?.track.details.rel))
+      setLastPosition(slider.current?.track.details.abs === 1)
     },
   })
 
