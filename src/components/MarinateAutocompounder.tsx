@@ -7,7 +7,6 @@ import DashboardCard from './DashboardCard'
 import Selector from './Selector'
 
 import useUserAddress from '../hooks/useUserAddress'
-import useUserSigner from '../hooks/useUserSigner'
 import useExternalContractLoader from '../hooks/useExternalContractLoader'
 import useTransaction, { notify } from '../hooks/useTransaction'
 
@@ -55,7 +54,6 @@ export default function MarinateAutocompounder() {
   const [action, setAction] = React.useState<'deposit' | 'withdraw'>('deposit')
 
   const userAddress = useUserAddress()
-  const userSigner = useUserSigner()
   const transaction = useTransaction()
   const farmContract = useExternalContractLoader(farmAddress, farmAbi)
   const tokenContract = useExternalContractLoader(tokenAddr, MarinateV2ABI)
@@ -183,18 +181,13 @@ export default function MarinateAutocompounder() {
 
   const handleDeposit = React.useCallback(
     async ({ depositAmount }, { resetForm }) => {
-      if (!state.isApproved || !farmContract || !userSigner) {
+      if (!state.isApproved || !farmContract) {
         return
       }
 
       try {
-        const data = await farmContract.interface.encodeFunctionData(
-          'deposit',
-          [parseUnits(String(depositAmount), 9)]
-        )
-
         await transaction(
-          userSigner.sendTransaction({ to: farmAddress, data } as any)
+          farmContract.deposit(parseUnits(String(depositAmount), 9))
         )
       } catch (err) {
         notify.notification({
@@ -207,24 +200,18 @@ export default function MarinateAutocompounder() {
         resetForm()
       }
     },
-    [state.isApproved, farmContract, userSigner, transaction]
+    [state.isApproved, farmContract, transaction]
   )
 
   const handleWithdraw = React.useCallback(
     async ({ withdrawAmount }, { resetForm }) => {
-      if (!state.isApproved || !farmContract || !userSigner) {
+      if (!state.isApproved || !farmContract) {
         return
       }
 
       try {
-        const amount = parseUnits(String(Number(withdrawAmount)), 9)
-        const data = await farmContract.interface.encodeFunctionData(
-          'withdraw',
-          [amount]
-        )
-
         await transaction(
-          userSigner.sendTransaction({ to: farmAddress, data } as any)
+          farmContract.withdraw(parseUnits(String(Number(withdrawAmount)), 9))
         )
       } catch (err) {
         notify.notification({
@@ -237,22 +224,20 @@ export default function MarinateAutocompounder() {
         resetForm()
       }
     },
-    [state.isApproved, farmContract, userSigner, transaction]
+    [state.isApproved, farmContract, transaction]
   )
 
   const handleApproval = React.useCallback(async () => {
-    if (!userSigner || !tokenContract || !tokenAddr) {
+    if (!tokenContract || !tokenAddr) {
       return
     }
 
     try {
-      const data = await tokenContract.interface.encodeFunctionData('approve', [
-        farmAddress,
-        parseUnits(String(Number.MAX_SAFE_INTEGER), 9),
-      ])
-
       await transaction(
-        userSigner.sendTransaction({ to: tokenAddr, data } as any)
+        tokenContract.approve(
+          farmAddress,
+          parseUnits(String(Number.MAX_SAFE_INTEGER), 9)
+        )
       )
     } catch (err) {
       notify.notification({
@@ -267,18 +252,15 @@ export default function MarinateAutocompounder() {
         callingFarmName: farmName,
       })
     }
-  }, [userSigner, tokenContract, transaction, tokenAddr])
+  }, [tokenContract, transaction, tokenAddr])
 
   const handleCompound = React.useCallback(async () => {
-    if (!userSigner || !farmContract) {
+    if (!farmContract) {
       return
     }
+
     try {
-      const data = await farmContract.interface.encodeFunctionData(
-        'reinvest',
-        []
-      )
-      transaction(userSigner.sendTransaction({ to: farmAddress, data } as any))
+      await transaction(farmContract.reinvest())
     } catch (err) {
       notify.notification({
         eventCode: 'txError',
@@ -287,7 +269,7 @@ export default function MarinateAutocompounder() {
         autoDismiss: 10000,
       })
     }
-  }, [userSigner, farmContract, transaction])
+  }, [farmContract, transaction])
 
   React.useEffect(() => {
     if (tokenAddr === null) {
@@ -334,9 +316,7 @@ export default function MarinateAutocompounder() {
       <DashboardCard.Title>{farmName}</DashboardCard.Title>
 
       <DashboardCard.Subtitle>
-        <span className="font-extrabold">
-          Est. APY: ~50%
-        </span>
+        <span className="font-extrabold">Est. APY: ~50%</span>
         <span className="text-gray-500 font-light"> | </span>
         <a
           href={`https://arbiscan.io/address/${farmAddress}`}
@@ -488,8 +468,8 @@ export default function MarinateAutocompounder() {
                   <div>
                     <span>GET BACK: </span>
                     <span>
-                      {Number(state.farmUnderlyingTokensAvailable).toFixed(3)}
-                      {' '}{state.tokenSymbol}
+                      {Number(state.farmUnderlyingTokensAvailable).toFixed(3)}{' '}
+                      {state.tokenSymbol}
                     </span>
                   </div>
 
@@ -532,7 +512,7 @@ export default function MarinateAutocompounder() {
           <DashboardCard.Action
             color="black"
             disabled={!rewardsState.availableTokenRewards}
-            onClick={() => handleCompound()}
+            onClick={handleCompound}
           >
             Compound
           </DashboardCard.Action>

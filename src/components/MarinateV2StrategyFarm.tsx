@@ -7,7 +7,6 @@ import DashboardCard from './DashboardCard'
 import Selector from './Selector'
 
 import useUserAddress from '../hooks/useUserAddress'
-import useUserSigner from '../hooks/useUserSigner'
 import useExternalContractLoader from '../hooks/useExternalContractLoader'
 import useTransaction, { notify } from '../hooks/useTransaction'
 
@@ -88,7 +87,6 @@ export default function MarinateV2StrategyFarm() {
   const [action, setAction] = React.useState<'deposit' | 'withdraw'>('deposit')
 
   const userAddress = useUserAddress()
-  const userSigner = useUserSigner()
   const transaction = useTransaction()
 
   const farmContract = useExternalContractLoader(farmAddress, farmAbi)
@@ -188,17 +186,13 @@ export default function MarinateV2StrategyFarm() {
 
   const handleDeposit = React.useCallback(
     async ({ depositAmount }, { resetForm }) => {
-      if (!farmState.isApproved || !farmContract || !userSigner) {
+      if (!farmState.isApproved || !farmContract) {
         return
       }
 
       try {
-        const data = await farmContract.interface.encodeFunctionData('stake', [
-          parseUnits(String(depositAmount), 9),
-        ])
-
         await transaction(
-          userSigner.sendTransaction({ to: farmAddress, data } as any)
+          farmContract.stake(parseUnits(String(depositAmount), 9))
         )
       } catch (err) {
         notify.notification({
@@ -211,24 +205,17 @@ export default function MarinateV2StrategyFarm() {
         resetForm()
       }
     },
-    [farmState.isApproved, farmContract, userSigner, transaction]
+    [farmState.isApproved, farmContract, transaction]
   )
 
   const handleWithdraw = React.useCallback(
     async ({ withdrawAmount }, { resetForm }) => {
-      if (!farmState.isApproved || !farmContract || !userSigner) {
+      if (!farmState.isApproved || !farmContract) {
         return
       }
 
       try {
-        const data = await farmContract.interface.encodeFunctionData(
-          'withdraw',
-          []
-        )
-
-        await transaction(
-          userSigner.sendTransaction({ to: farmAddress, data } as any)
-        )
+        await transaction(farmContract.withdraw())
       } catch (err) {
         notify.notification({
           eventCode: 'txError',
@@ -240,22 +227,20 @@ export default function MarinateV2StrategyFarm() {
         resetForm()
       }
     },
-    [farmState.isApproved, farmContract, userSigner, transaction]
+    [farmState.isApproved, farmContract, transaction]
   )
 
   const handleApproval = React.useCallback(async () => {
-    if (!userSigner || !tokenContract || !tokenState.address) {
+    if (!tokenContract || !tokenState.address) {
       return
     }
 
     try {
-      const data = await tokenContract.interface.encodeFunctionData('approve', [
-        farmAddress,
-        parseUnits(String(Number.MAX_SAFE_INTEGER), 9),
-      ])
-
       await transaction(
-        userSigner.sendTransaction({ to: tokenState.address, data } as any)
+        tokenContract.approve(
+          farmAddress,
+          parseUnits(String(Number.MAX_SAFE_INTEGER), 9)
+        )
       )
     } catch (err) {
       notify.notification({
@@ -270,21 +255,15 @@ export default function MarinateV2StrategyFarm() {
         callingFarmName: farmName,
       })
     }
-  }, [userSigner, tokenContract, transaction, tokenState.address])
+  }, [tokenContract, transaction, tokenState.address])
 
   const handleClaim = React.useCallback(async () => {
-    if (!farmState.isApproved || !userSigner || !farmContract) {
+    if (!farmState.isApproved || !farmContract) {
       return
     }
 
     try {
-      const data = await farmContract.interface.encodeFunctionData(
-        'claimRewards',
-        []
-      )
-      await transaction(
-        userSigner.sendTransaction({ to: farmAddress, data } as any)
-      )
+      await transaction(farmContract.claimRewards())
     } catch (err) {
       notify.notification({
         eventCode: 'txError',
@@ -293,7 +272,7 @@ export default function MarinateV2StrategyFarm() {
         autoDismiss: 2000,
       })
     }
-  }, [userSigner, farmContract, farmState.isApproved, transaction])
+  }, [farmContract, farmState.isApproved, transaction])
 
   React.useEffect(() => {
     if (tokenState.address === null) {
@@ -351,9 +330,13 @@ export default function MarinateV2StrategyFarm() {
         <p className="mt-4">
           Don't forget to deposit your ${tokenState.symbol} to our $ARBIS
           Booster to start raking in savory $ARBIS rewards!
-          <br/>
-          <b>Deposited cmUMAMI will be timelocked for 30 days from the time of deposit. After the 30 days, any withdrawal in the following 8 weeks will be subject to a 3% fee.</b>
-          <br/>
+          <br />
+          <b>
+            Deposited cmUMAMI will be timelocked for 30 days from the time of
+            deposit. After the 30 days, any withdrawal in the following 8 weeks
+            will be subject to a 3% fee.
+          </b>
+          <br />
           Rewards can be claimed at any time.
         </p>
 
