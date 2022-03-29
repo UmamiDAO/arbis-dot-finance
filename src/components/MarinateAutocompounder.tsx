@@ -244,7 +244,7 @@ export default function MarinateAutocompounder() {
 
       <DashboardCard.Subtitle>
         <span className="font-extrabold">
-          Est. APY: 100%-150%
+          Est. APY: ~50%
         </span>
         <span className="text-gray-500 font-light"> | </span>
         <a
