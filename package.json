@@ -25,8 +25,6 @@
     "ethers": "^5.5.1",
     "formik": "^2.2.9",
     "fortmatic": "^2.2.1",
-    "ipfs-api": "^26.1.2",
-    "ipfs-http-client": "^56.0.1",
     "js-cookie": "^3.0.1",
     "keen-slider": "^6.6.3",
     "react": "^17.0.2",
