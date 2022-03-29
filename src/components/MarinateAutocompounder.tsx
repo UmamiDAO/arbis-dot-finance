@@ -14,6 +14,7 @@ import useTransaction, { notify } from '../hooks/useTransaction'
 import mUMAMIAutocompounderAddress from '../contracts/mUMAMIAutocompounder.address'
 import MarinateV2StrategyABI from '../contracts/MarinateV2Strategy.abi'
 import ERC20Abi from '../contracts/ERC20.abi'
+import MarinateV2ABI from '../contracts/MarinateV2.abi'
 
 // testnet address 0x50B97c26c1F866156Da1E07Bc47b35d850d34EBa
 
@@ -38,15 +39,30 @@ export default function MarinateAutocompounder() {
     isInitialized: false,
   }
 
+  const initRewardsState: {
+    symbol: string | null
+    availableTokenRewards: number | null
+    address: string | null
+  } = {
+    symbol: null,
+    availableTokenRewards: null,
+    address: null,
+  }
+
   const [state, setState] = React.useState(initState)
   const [tokenAddr, setTokenAddr] = React.useState<string | null>(null)
+  const [rewardsState, setRewardsState] = React.useState(initRewardsState)
   const [action, setAction] = React.useState<'deposit' | 'withdraw'>('deposit')
 
   const userAddress = useUserAddress()
   const userSigner = useUserSigner()
   const transaction = useTransaction()
   const farmContract = useExternalContractLoader(farmAddress, farmAbi)
-  const tokenContract = useExternalContractLoader(tokenAddr, ERC20Abi)
+  const tokenContract = useExternalContractLoader(tokenAddr, MarinateV2ABI)
+  const rewardContract = useExternalContractLoader(
+    rewardsState.address,
+    ERC20Abi
+  )
 
   const handleTokenAddr = React.useCallback(async () => {
     if (!farmContract) {
@@ -65,6 +81,42 @@ export default function MarinateAutocompounder() {
     }
   }, [farmContract, state])
 
+  const handleRewards = React.useCallback(async () => {
+    if (
+      !rewardContract ||
+      !tokenContract ||
+      !userAddress ||
+      !rewardsState.address
+    ) {
+      return
+    }
+
+    try {
+      const [symbol, rewards] = await Promise.all([
+        rewardContract.symbol(),
+        tokenContract.getAvailableTokenRewards(
+          userAddress,
+          rewardsState.address
+        ),
+      ])
+      const availableTokenRewards = Number(formatUnits(rewards, 9))
+      setRewardsState({ ...rewardsState, symbol, availableTokenRewards })
+    } catch (err) {
+      setRewardsState({
+        ...rewardsState,
+        symbol: 'err',
+        availableTokenRewards: 0,
+      })
+      console.log({
+        err,
+        callingFunc: 'handleRewards',
+        callingFarmName: farmName,
+        rewardsState,
+        userAddress,
+      })
+    }
+  }, [rewardContract, tokenContract, userAddress, rewardsState])
+
   const handleState = React.useCallback(async () => {
     if (!tokenAddr || !farmContract || !tokenContract || !userAddress) {
       return
@@ -80,6 +132,7 @@ export default function MarinateAutocompounder() {
         shareBalance,
         farmTokensPerShare,
         totalDeposits,
+        rewardToken,
       ] = await Promise.all([
         tokenContract.balanceOf(userAddress),
         tokenContract.name(),
@@ -90,11 +143,16 @@ export default function MarinateAutocompounder() {
         farmContract.balanceOf(userAddress),
         farmContract.getDepositTokensForShares(parseUnits('1.0', 9)),
         farmContract.totalDeposits,
+        farmContract.rewardTokens(0),
       ])
 
       const farmUnderlyingTokensAvailable =
         await farmContract.getDepositTokensForShares(shareBalance || 0)
       const isApproved = !BigNumber.from('0').eq(approved)
+
+      if (!rewardsState.address) {
+        setRewardsState({ ...rewardsState, address: rewardToken })
+      }
 
       setState({
         tokenBalance: formatUnits(tokenBalance, 9),
@@ -111,6 +169,7 @@ export default function MarinateAutocompounder() {
         farmShareBalance: formatUnits(shareBalance, 9),
         farmTokensPerShare: formatUnits(farmTokensPerShare, 9),
         totalDeposits,
+        rewardToken,
         isInitialized: true,
       })
     } catch (err) {
@@ -120,7 +179,7 @@ export default function MarinateAutocompounder() {
         callingFarmName: farmName,
       })
     }
-  }, [tokenAddr, farmContract, tokenContract, userAddress])
+  }, [tokenAddr, farmContract, tokenContract, userAddress, rewardsState])
 
   const handleDeposit = React.useCallback(
     async ({ depositAmount }, { resetForm }) => {
@@ -210,11 +269,43 @@ export default function MarinateAutocompounder() {
     }
   }, [userSigner, tokenContract, transaction, tokenAddr])
 
+  const handleCompound = React.useCallback(async () => {
+    if (!userSigner || !farmContract) {
+      return
+    }
+    try {
+      const data = await farmContract.interface.encodeFunctionData(
+        'reinvest',
+        []
+      )
+      transaction(userSigner.sendTransaction({ to: farmAddress, data } as any))
+    } catch (err) {
+      notify.notification({
+        eventCode: 'txError',
+        type: 'error',
+        message: (err as Error).message,
+        autoDismiss: 10000,
+      })
+    }
+  }, [userSigner, farmContract, transaction])
+
   React.useEffect(() => {
     if (tokenAddr === null) {
       handleTokenAddr()
     }
   }, [tokenAddr, handleTokenAddr])
+
+  React.useEffect(() => {
+    if (
+      !rewardContract ||
+      rewardsState.symbol !== null ||
+      rewardsState.availableTokenRewards !== null
+    ) {
+      return
+    }
+
+    handleRewards()
+  }, [rewardContract, handleRewards, rewardsState])
 
   React.useEffect(() => {
     if (!tokenAddr) {
@@ -436,7 +527,26 @@ export default function MarinateAutocompounder() {
             </Formik>
           </div>
         ) : null}
+
+        <div className="mt-4">
+          <DashboardCard.Action
+            color="black"
+            disabled={!rewardsState.availableTokenRewards}
+            onClick={() => handleCompound()}
+          >
+            Compound
+          </DashboardCard.Action>
+        </div>
       </DashboardCard.Content>
+
+      <DashboardCard.More>
+        <strong>Current Reward(s):</strong>
+
+        <div className="flex justify-between">
+          <div>{rewardsState.availableTokenRewards}</div>
+          <div>{rewardsState.symbol}</div>
+        </div>
+      </DashboardCard.More>
     </DashboardCard>
   )
 }
