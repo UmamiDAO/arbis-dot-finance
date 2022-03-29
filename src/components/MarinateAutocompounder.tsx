@@ -243,6 +243,10 @@ export default function MarinateAutocompounder() {
       <DashboardCard.Title>{farmName}</DashboardCard.Title>
 
       <DashboardCard.Subtitle>
+        <span className="font-extrabold">
+          Est. APY: 100%-150%
+        </span>
+        <span className="text-gray-500 font-light"> | </span>
         <a
           href={`https://arbiscan.io/address/${farmAddress}`}
           target="_blank"
@@ -266,14 +270,14 @@ export default function MarinateAutocompounder() {
               {Number(state.farmTotalDeposits) ? (
                 <>
                   {parseFloat(String(state.farmTotalDeposits)).toLocaleString()}
-                  <span> ${state.tokenSymbol}</span>
+                  <span> {state.tokenSymbol}</span>
                 </>
               ) : null}
               {Number(state.totalDeposits) ? (
                 <>
                   <span> === </span>
                   <span>
-                    ${Number(state.totalDeposits).toLocaleString('en-us')}
+                    {Number(state.totalDeposits).toLocaleString('en-us')}
                   </span>
                 </>
               ) : null}
@@ -281,9 +285,9 @@ export default function MarinateAutocompounder() {
           </div>
 
           <div className="flex justify-between">
-            <strong>1 ${state.farmSymbol}:</strong>
+            <strong>1 {state.farmSymbol}:</strong>
             <div className="text-right">
-              {Number(state.farmTokensPerShare).toFixed(3)} ${state.tokenSymbol}
+              {Number(state.farmTokensPerShare).toFixed(3)} {state.tokenSymbol}
             </div>
           </div>
         </div>
@@ -324,7 +328,7 @@ export default function MarinateAutocompounder() {
                       >
                         {Number(state.tokenBalance).toFixed(3)}
                       </button>
-                      <span> ${state.tokenSymbol}</span>
+                      <span> {state.tokenSymbol}</span>
                     </div>
 
                     <Field
@@ -387,14 +391,14 @@ export default function MarinateAutocompounder() {
                     >
                       {Number(state.farmShareBalance).toFixed(3)}
                     </button>
-                    <span> ${state.farmSymbol}</span>
+                    <span> {state.farmSymbol}</span>
                   </div>
 
                   <div>
                     <span>GET BACK: </span>
                     <span>
-                      {Number(state.farmUnderlyingTokensAvailable).toFixed(3)} $
-                      {state.tokenSymbol}
+                      {Number(state.farmUnderlyingTokensAvailable).toFixed(3)}
+                      {' '}{state.tokenSymbol}
                     </span>
                   </div>
 

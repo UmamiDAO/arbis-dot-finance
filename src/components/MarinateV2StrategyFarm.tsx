@@ -334,7 +334,7 @@ export default function MarinateV2StrategyFarm() {
 
       <DashboardCard.Subtitle>
         <span className="font-extrabold">
-          Est. APY for ${tokenState.symbol} w/ ARBIS Booster: 100%-150%
+          Est. APY for ${tokenState.symbol} w/ ARBIS Booster: 150%-200%
         </span>
         <span className="text-gray-500 font-light"> | </span>
         <a
@@ -352,7 +352,9 @@ export default function MarinateV2StrategyFarm() {
           Don't forget to deposit your ${tokenState.symbol} to our $ARBIS
           Booster to start raking in savory $ARBIS rewards!
           <br/>
-          <b>Just as with Marinate V2, autocompounded mUMAMI will be timelocked for 30 days.</b>
+          <b>Deposited cmUMAMI will be timelocked for 30 days from the time of deposit. After the 30 days, any withdrawal in the following 8 weeks will be subject to a 3% fee.</b>
+          <br/>
+          Rewards can be claimed at any time.
         </p>
 
         <div className="mt-8">
@@ -362,7 +364,7 @@ export default function MarinateV2StrategyFarm() {
               {Number(farmState.totalStaked) ? (
                 <>
                   {parseFloat(String(farmState.totalStaked)).toLocaleString()}
-                  <span> ${tokenState.symbol}</span>
+                  <span> {tokenState.symbol}</span>
                 </>
               ) : null}
             </div>
@@ -405,7 +407,7 @@ export default function MarinateV2StrategyFarm() {
                       >
                         {Number(farmState.tokenBalance).toFixed(3)}
                       </button>
-                      <span> ${tokenState.symbol}</span>
+                      <span> {tokenState.symbol}</span>
                     </div>
 
                     <Field
@@ -458,7 +460,7 @@ export default function MarinateV2StrategyFarm() {
                 <Form method="post">
                   <fieldset disabled={isSubmitting}>
                     <div>
-                      <span>ALL ${tokenState.symbol} IS WITHDRAWN AT ONCE</span>
+                      <span>ALL {tokenState.symbol} IS WITHDRAWN AT ONCE</span>
                     </div>
                     <Field
                       name="withdrawAmount"
