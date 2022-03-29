@@ -351,6 +351,8 @@ export default function MarinateV2StrategyFarm() {
         <p className="mt-4">
           Don't forget to deposit your ${tokenState.symbol} to our $ARBIS
           Booster to start raking in savory $ARBIS rewards!
+          <br/>
+          <b>Just as with Marinate V2, autocompounded mUMAMI will be timelocked for 30 days.</b>
         </p>
 
         <div className="mt-8">
