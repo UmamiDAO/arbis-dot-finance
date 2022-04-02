@@ -303,10 +303,6 @@ export default function MarinateV2StrategyFarm() {
     return () => clearInterval(interval)
   }, [farmState.isInitialized, handleFarmState])
 
-  if (!farmState.isInitialized) {
-    return null
-  }
-
   return (
     <DashboardCard>
       <DashboardCard.Title>{farmName}</DashboardCard.Title>
@@ -330,15 +326,15 @@ export default function MarinateV2StrategyFarm() {
         <p className="mt-4">
           Don't forget to deposit your ${tokenState.symbol} to our $ARBIS
           Booster to start raking in savory $ARBIS rewards!
-          <br />
-          <b>
-            Deposited cmUMAMI will be timelocked for 30 days from the time of
-            deposit. After the 30 days, any withdrawal in the following 8 weeks
-            will be subject to a 3% fee.
-          </b>
-          <br />
-          Rewards can be claimed at any time.
         </p>
+
+        <strong className="block mt-4">
+          Deposited cmUMAMI will be timelocked for 30 days from the time of
+          deposit. After the 30 days, any withdrawal in the following 8 weeks
+          will be subject to a 3% fee.
+        </strong>
+
+        <p className="mt-4">Rewards can be claimed at any time.</p>
 
         <div className="mt-8">
           <div className="flex justify-between">
@@ -507,7 +503,9 @@ export default function MarinateV2StrategyFarm() {
         <strong className="mt-8">Current Reward(s):</strong>
 
         <div className="flex justify-between">
-          <div>{Number(farmState.availableTokenRewards).toFixed(6)}</div>
+          <div>
+            {Number(farmState.availableTokenRewards) || Number('0').toFixed(1)}
+          </div>
           <div>{tokenState.symbol}</div>
         </div>
       </DashboardCard.More>

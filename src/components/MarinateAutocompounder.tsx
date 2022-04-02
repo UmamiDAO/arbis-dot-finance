@@ -1,18 +1,19 @@
 import React from 'react'
 import { parseUnits, formatUnits } from '@ethersproject/units'
-import { BigNumber } from 'ethers'
+import { BigNumber, Contract } from 'ethers'
 import { Formik, Form, Field } from 'formik'
 
 import DashboardCard from './DashboardCard'
 import Selector from './Selector'
 
 import useUserAddress from '../hooks/useUserAddress'
+import useUserSigner from '../hooks/useUserSigner'
 import useExternalContractLoader from '../hooks/useExternalContractLoader'
 import useTransaction, { notify } from '../hooks/useTransaction'
 
 import mUMAMIAutocompounderAddress from '../contracts/mUMAMIAutocompounder.address'
 import MarinateV2StrategyABI from '../contracts/MarinateV2Strategy.abi'
-import ERC20Abi from '../contracts/ERC20.abi'
+import ERC20ABI from '../contracts/ERC20.abi'
 import MarinateV2ABI from '../contracts/MarinateV2.abi'
 
 // testnet address 0x50B97c26c1F866156Da1E07Bc47b35d850d34EBa
@@ -20,6 +21,8 @@ import MarinateV2ABI from '../contracts/MarinateV2.abi'
 const farmAddress = mUMAMIAutocompounderAddress
 const farmAbi = MarinateV2StrategyABI
 const farmName = 'Step 1. Autocompound $mUMAMI'
+
+type Reward = { address: string; symbol: string; availableTokenRewards: number }
 
 export default function MarinateAutocompounder() {
   const initState: {
@@ -38,29 +41,16 @@ export default function MarinateAutocompounder() {
     isInitialized: false,
   }
 
-  const initRewardsState: {
-    symbol: string | null
-    availableTokenRewards: number | null
-    address: string | null
-  } = {
-    symbol: null,
-    availableTokenRewards: null,
-    address: null,
-  }
-
   const [state, setState] = React.useState(initState)
   const [tokenAddr, setTokenAddr] = React.useState<string | null>(null)
-  const [rewardsState, setRewardsState] = React.useState(initRewardsState)
+  const [rewardsState, setRewardsState] = React.useState<Reward[]>([])
   const [action, setAction] = React.useState<'deposit' | 'withdraw'>('deposit')
 
   const userAddress = useUserAddress()
+  const userSigner = useUserSigner()
   const transaction = useTransaction()
   const farmContract = useExternalContractLoader(farmAddress, farmAbi)
   const tokenContract = useExternalContractLoader(tokenAddr, MarinateV2ABI)
-  const rewardContract = useExternalContractLoader(
-    rewardsState.address,
-    ERC20Abi
-  )
 
   const handleTokenAddr = React.useCallback(async () => {
     if (!farmContract) {
@@ -79,42 +69,6 @@ export default function MarinateAutocompounder() {
     }
   }, [farmContract, state])
 
-  const handleRewards = React.useCallback(async () => {
-    if (
-      !rewardContract ||
-      !tokenContract ||
-      !userAddress ||
-      !rewardsState.address
-    ) {
-      return
-    }
-
-    try {
-      const [symbol, rewards] = await Promise.all([
-        rewardContract.symbol(),
-        tokenContract.getAvailableTokenRewards(
-          userAddress,
-          rewardsState.address
-        ),
-      ])
-      const availableTokenRewards = Number(formatUnits(rewards, 9))
-      setRewardsState({ ...rewardsState, symbol, availableTokenRewards })
-    } catch (err) {
-      setRewardsState({
-        ...rewardsState,
-        symbol: 'err',
-        availableTokenRewards: 0,
-      })
-      console.log({
-        err,
-        callingFunc: 'handleRewards',
-        callingFarmName: farmName,
-        rewardsState,
-        userAddress,
-      })
-    }
-  }, [rewardContract, tokenContract, userAddress, rewardsState])
-
   const handleState = React.useCallback(async () => {
     if (!tokenAddr || !farmContract || !tokenContract || !userAddress) {
       return
@@ -130,7 +84,6 @@ export default function MarinateAutocompounder() {
         shareBalance,
         farmTokensPerShare,
         totalDeposits,
-        rewardToken,
       ] = await Promise.all([
         tokenContract.balanceOf(userAddress),
         tokenContract.name(),
@@ -141,16 +94,11 @@ export default function MarinateAutocompounder() {
         farmContract.balanceOf(userAddress),
         farmContract.getDepositTokensForShares(parseUnits('1.0', 9)),
         farmContract.totalDeposits,
-        farmContract.rewardTokens(0),
       ])
 
       const farmUnderlyingTokensAvailable =
         await farmContract.getDepositTokensForShares(shareBalance || 0)
       const isApproved = !BigNumber.from('0').eq(approved)
-
-      if (!rewardsState.address) {
-        setRewardsState({ ...rewardsState, address: rewardToken })
-      }
 
       setState({
         tokenBalance: formatUnits(tokenBalance, 9),
@@ -167,7 +115,6 @@ export default function MarinateAutocompounder() {
         farmShareBalance: formatUnits(shareBalance, 9),
         farmTokensPerShare: formatUnits(farmTokensPerShare, 9),
         totalDeposits,
-        rewardToken,
         isInitialized: true,
       })
     } catch (err) {
@@ -177,7 +124,71 @@ export default function MarinateAutocompounder() {
         callingFarmName: farmName,
       })
     }
-  }, [tokenAddr, farmContract, tokenContract, userAddress, rewardsState])
+  }, [tokenAddr, farmContract, tokenContract, userAddress])
+
+  const handleRewards = React.useCallback(async () => {
+    if (!tokenContract || !userSigner) {
+      return
+    }
+
+    try {
+      const tokenIdx = [0, 1]
+      const promises = tokenIdx.map((idx) => tokenContract.rewardTokens(idx))
+      const [rewardToken1, rewardToken2] = await Promise.all(promises)
+
+      const rewardToken1Contract = new Contract(
+        rewardToken1,
+        ERC20ABI,
+        userSigner
+      )
+      const rewardToken2Contract = new Contract(
+        rewardToken2,
+        ERC20ABI,
+        userSigner
+      )
+
+      const [
+        rewardTokenSymbol1,
+        rewardTokenSymbol2,
+        availableTokenRewards1,
+        availableTokenRewards2,
+      ] = await Promise.all([
+        rewardToken1Contract.symbol(),
+        rewardToken2Contract.symbol(),
+        tokenContract.getAvailableTokenRewards(farmAddress, rewardToken1),
+        tokenContract.getAvailableTokenRewards(farmAddress, rewardToken2),
+      ])
+
+      const isUmami = (symbol: string) => symbol === 'UMAMI'
+
+      const reward1: Reward = {
+        address: rewardToken1,
+        symbol: rewardTokenSymbol1,
+        availableTokenRewards: Number(
+          isUmami(rewardTokenSymbol1)
+            ? formatUnits(availableTokenRewards1, 9)
+            : formatUnits(availableTokenRewards1, 18)
+        ),
+      }
+
+      const reward2: Reward = {
+        address: rewardToken2,
+        symbol: rewardTokenSymbol2,
+        availableTokenRewards: Number(
+          isUmami(rewardTokenSymbol2)
+            ? formatUnits(availableTokenRewards2, 9)
+            : formatUnits(availableTokenRewards2, 28)
+        ),
+      }
+      setRewardsState([reward1, reward2])
+    } catch (err) {
+      console.log({
+        err,
+        callingFunc: 'handleRewards',
+        callingFarmName: farmName,
+      })
+    }
+  }, [tokenContract, userSigner])
 
   const handleDeposit = React.useCallback(
     async ({ depositAmount }, { resetForm }) => {
@@ -278,16 +289,10 @@ export default function MarinateAutocompounder() {
   }, [tokenAddr, handleTokenAddr])
 
   React.useEffect(() => {
-    if (
-      !rewardContract ||
-      rewardsState.symbol !== null ||
-      rewardsState.availableTokenRewards !== null
-    ) {
-      return
+    if (rewardsState.length === 0) {
+      handleRewards()
     }
-
-    handleRewards()
-  }, [rewardContract, handleRewards, rewardsState])
+  }, [rewardsState, handleRewards])
 
   React.useEffect(() => {
     if (!tokenAddr) {
@@ -307,9 +312,32 @@ export default function MarinateAutocompounder() {
     return () => clearInterval(interval)
   }, [state.isInitialized, handleState])
 
-  if (!state.isInitialized) {
-    return null
-  }
+  const disableCompound = React.useMemo(() => {
+    if (!rewardsState.length) {
+      return true
+    }
+
+    const amounts = rewardsState.map(
+      ({ availableTokenRewards }) => availableTokenRewards
+    )
+
+    return amounts.filter((amt) => amt > 0).length === 0
+  }, [rewardsState])
+
+  const rewards = React.useMemo(() => {
+    return rewardsState.length ? (
+      <DashboardCard.More>
+        <strong>Current Reward(s):</strong>
+
+        {rewardsState.map((reward) => (
+          <div key={reward.address} className="flex justify-between">
+            <div>{reward.availableTokenRewards || Number('0').toFixed(1)}</div>
+            <div>{reward.symbol}</div>
+          </div>
+        ))}
+      </DashboardCard.More>
+    ) : null
+  }, [rewardsState])
 
   return (
     <DashboardCard>
@@ -511,7 +539,7 @@ export default function MarinateAutocompounder() {
         <div className="mt-4">
           <DashboardCard.Action
             color="black"
-            disabled={!rewardsState.availableTokenRewards}
+            disabled={disableCompound}
             onClick={handleCompound}
           >
             Compound
@@ -519,14 +547,7 @@ export default function MarinateAutocompounder() {
         </div>
       </DashboardCard.Content>
 
-      <DashboardCard.More>
-        <strong>Current Reward(s):</strong>
-
-        <div className="flex justify-between">
-          <div>{rewardsState.availableTokenRewards}</div>
-          <div>{rewardsState.symbol}</div>
-        </div>
-      </DashboardCard.More>
+      {rewards}
     </DashboardCard>
   )
 }

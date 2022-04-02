@@ -290,10 +290,6 @@ export default function CheemsEth2Farm() {
     return () => clearInterval(interval)
   }, [state.isInitialized, handleState])
 
-  if (!state.isInitialized) {
-    return null
-  }
-
   return (
     <DashboardCard>
       <DashboardCard.Title>Cheems/ETH</DashboardCard.Title>
