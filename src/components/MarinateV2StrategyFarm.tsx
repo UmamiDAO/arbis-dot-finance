@@ -1,24 +1,28 @@
 import React from 'react'
 import { formatUnits, parseUnits } from '@ethersproject/units'
-import { BigNumber } from 'ethers'
+import { BigNumber, Contract } from 'ethers'
 import { Formik, Form, Field } from 'formik'
 
 import DashboardCard from './DashboardCard'
 import Selector from './Selector'
 
 import useUserAddress from '../hooks/useUserAddress'
+import useUserSigner from '../hooks/useUserSigner'
 import useExternalContractLoader from '../hooks/useExternalContractLoader'
 import useTransaction, { notify } from '../hooks/useTransaction'
 
 import mUMAMIAutocompounderFarm from '../contracts/mUMAMIAutocompounderFarm.address'
 import MarinateV2StrategyABI from '../contracts/MarinateV2Strategy.abi'
 import MarinateV2StrategyFarmABI from '../contracts/MarinateV2StrategyFarm.abi'
+import ERC20ABI from '../contracts/ERC20.abi'
 
 // testnet address 0xE91205e3FE022B601075adb1CDAe5F2294Bf5240
 
 const farmName = 'Step 2. Boost with $ARBIS Rewards'
 const farmAddress = mUMAMIAutocompounderFarm
 const farmAbi = MarinateV2StrategyFarmABI
+
+type Reward = { address: string; symbol: string; availableTokenRewards: number }
 
 function Countdown({ unlockTime }: { unlockTime: number }) {
   const [remaining, setRemaining] = React.useState<number | null>(null)
@@ -67,13 +71,11 @@ export default function MarinateV2StrategyFarm() {
     lastDepositTime: null,
     unlockTime: null,
     stakedBalance: null,
-    availableTokenRewards: null,
     totalStaked: null,
     tokenBalance: null,
     isApproved: false,
     isInitialized: false,
   }
-
   const initTokenState: {
     [k: string]: string | number | boolean | null
   } = {
@@ -84,9 +86,11 @@ export default function MarinateV2StrategyFarm() {
 
   const [farmState, setFarmState] = React.useState(initFarmState)
   const [tokenState, setTokenState] = React.useState(initTokenState)
+  const [rewardsState, setRewardsState] = React.useState<Reward[]>([])
   const [action, setAction] = React.useState<'deposit' | 'withdraw'>('deposit')
 
   const userAddress = useUserAddress()
+  const userSigner = useUserSigner()
   const transaction = useTransaction()
 
   const farmContract = useExternalContractLoader(farmAddress, farmAbi)
@@ -112,6 +116,43 @@ export default function MarinateV2StrategyFarm() {
       })
     }
   }, [farmContract, tokenState])
+
+  const handleRewards = React.useCallback(async () => {
+    if (!userSigner || !farmContract || !userAddress || !tokenState.address) {
+      return
+    }
+
+    try {
+      const address = await farmContract.rewardTokens(0)
+      const rewardContract = new Contract(address, ERC20ABI, userSigner)
+
+      const [symbol, rewards, cmUmamiRewards] = await Promise.all([
+        rewardContract.symbol(),
+        farmContract.getAvailableTokenRewards(userAddress, address),
+        farmContract.getAvailableTokenRewards(userAddress, tokenState.address),
+      ])
+
+      const availableTokenRewards = Number(formatUnits(rewards, 18))
+      const cmUmamiAvailableTokenRewards = Number(
+        formatUnits(cmUmamiRewards, 18)
+      )
+
+      setRewardsState([
+        { address, symbol, availableTokenRewards },
+        {
+          address: tokenState.address,
+          symbol: tokenState.symbol,
+          availableTokenRewards: cmUmamiAvailableTokenRewards,
+        },
+      ])
+    } catch (err) {
+      console.log({
+        err,
+        callingFunc: 'handleRewards',
+        callingFarmName: farmName,
+      })
+    }
+  }, [userSigner, farmContract, userAddress, tokenState])
 
   const handleTokenState = React.useCallback(async () => {
     if (
@@ -148,19 +189,13 @@ export default function MarinateV2StrategyFarm() {
       return
     }
     try {
-      const [
-        farmerInfo,
-        availableTokenRewards,
-        totalStaked,
-        allowance,
-        tokenBalance,
-      ] = await Promise.all([
-        farmContract.farmerInfo(userAddress),
-        farmContract.getAvailableTokenRewards(userAddress, tokenState.address),
-        farmContract.totalStaked(),
-        tokenContract.allowance(userAddress, farmAddress),
-        tokenContract.balanceOf(userAddress),
-      ])
+      const [farmerInfo, totalStaked, allowance, tokenBalance] =
+        await Promise.all([
+          farmContract.farmerInfo(userAddress),
+          farmContract.totalStaked(),
+          tokenContract.allowance(userAddress, farmAddress),
+          tokenContract.balanceOf(userAddress),
+        ])
 
       const isApproved = !BigNumber.from('0').eq(allowance)
       const { lastDepositTime, amount, unlockTime } = farmerInfo
@@ -169,7 +204,6 @@ export default function MarinateV2StrategyFarm() {
         lastDepositTime,
         unlockTime,
         stakedBalance: formatUnits(amount, 9),
-        availableTokenRewards: formatUnits(availableTokenRewards, 9),
         totalStaked: formatUnits(totalStaked, 9),
         tokenBalance: formatUnits(tokenBalance, 9),
         isApproved,
@@ -264,6 +298,11 @@ export default function MarinateV2StrategyFarm() {
 
     try {
       await transaction(farmContract.claimRewards())
+      const newRewardsState = rewardsState.map((reward) => ({
+        ...reward,
+        availableTokenRewards: 0,
+      }))
+      setRewardsState(newRewardsState)
     } catch (err) {
       notify.notification({
         eventCode: 'txError',
@@ -272,13 +311,19 @@ export default function MarinateV2StrategyFarm() {
         autoDismiss: 2000,
       })
     }
-  }, [farmContract, farmState.isApproved, transaction])
+  }, [farmContract, farmState.isApproved, transaction, rewardsState])
 
   React.useEffect(() => {
     if (tokenState.address === null) {
       handleTokenAddress()
     }
   }, [tokenState.address, handleTokenAddress])
+
+  React.useEffect(() => {
+    if (!rewardsState.length) {
+      handleRewards()
+    }
+  }, [rewardsState, handleRewards])
 
   React.useEffect(() => {
     if (tokenContract) {
@@ -303,13 +348,39 @@ export default function MarinateV2StrategyFarm() {
     return () => clearInterval(interval)
   }, [farmState.isInitialized, handleFarmState])
 
+  const disableClaim = React.useMemo(() => {
+    if (rewardsState.length === 0) {
+      return true
+    }
+
+    return (
+      rewardsState.filter((reward) => reward.availableTokenRewards > 0)
+        .length === 0
+    )
+  }, [rewardsState])
+
+  const rewards = React.useMemo(() => {
+    return rewardsState?.length ? (
+      <DashboardCard.More>
+        <strong className="mt-8">Current Reward(s):</strong>
+
+        {rewardsState.map((reward) => (
+          <div key={reward.address} className="flex justify-between">
+            <div>{reward.availableTokenRewards || Number('0').toFixed(1)}</div>
+            <div>{reward.symbol}</div>
+          </div>
+        ))}
+      </DashboardCard.More>
+    ) : null
+  }, [rewardsState])
+
   return (
     <DashboardCard>
       <DashboardCard.Title>{farmName}</DashboardCard.Title>
 
       <DashboardCard.Subtitle>
         <span className="font-extrabold">
-          Est. APY for ${tokenState.symbol} w/ ARBIS Booster: 150%-200%
+          Est. APY for ${tokenState.symbol} w/ ARBIS Booster: 100+%
         </span>
         <span className="text-gray-500 font-light"> | </span>
         <a
@@ -491,7 +562,7 @@ export default function MarinateV2StrategyFarm() {
         <div className="mt-4">
           <DashboardCard.Action
             color="black"
-            disabled={!Number(farmState.availableTokenRewards)}
+            disabled={disableClaim}
             onClick={handleClaim}
           >
             Claim Rewards
@@ -499,16 +570,7 @@ export default function MarinateV2StrategyFarm() {
         </div>
       </DashboardCard.Content>
 
-      <DashboardCard.More>
-        <strong className="mt-8">Current Reward(s):</strong>
-
-        <div className="flex justify-between">
-          <div>
-            {Number(farmState.availableTokenRewards) || Number('0').toFixed(1)}
-          </div>
-          <div>{tokenState.symbol}</div>
-        </div>
-      </DashboardCard.More>
+      {rewards}
     </DashboardCard>
   )
 }
