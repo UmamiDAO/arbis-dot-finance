@@ -1,4 +1,4 @@
-import { createGlobalStyle } from 'styled-components';
+import { createGlobalStyle } from 'styled-components'
 
 const GlobalStyle = createGlobalStyle`
   :root {
@@ -30,17 +30,17 @@ const GlobalStyle = createGlobalStyle`
 
   @keyframes animate {
     0% {
-      transform: translateY(0px)
+      transform: translateY(0px);
     }
 
     20% {
-      transform: translateY(-16px)
+      transform: translateY(-16px);
     }
 
     40%, 100% {
-      transform: translateY(0px)
+      transform: translateY(0px);
     }
   }
-`;
+`
 
-export default GlobalStyle;
+export default GlobalStyle

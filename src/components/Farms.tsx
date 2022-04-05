@@ -4,11 +4,13 @@ import Selector from './Selector'
 import ArbisFarms from './ArbisFarms'
 import SushiFarms from './SushiFarms'
 import MarinatedUmamiFarms from './MarinatedUmamiFarms'
+import StargatorTab from './StargatorTab'
 
 const categories = [
   'arbis',
   'sushi',
   'mumami',
+  'stargator',
   /*  'swapr', 'nyan', */ 'legacy',
 ]
 
@@ -30,6 +32,8 @@ export default function Farms() {
         return <SushiFarms />
       case 'mumami':
         return <MarinatedUmamiFarms />
+      case 'stargator':
+        return <StargatorTab />
       default:
         return (
           <section className="flex items-center justify-center h-64">
@@ -59,7 +63,7 @@ export default function Farms() {
                 if (item === 'legacy') {
                   window.open(
                     'https://old.arbis.finance/#/legacy-farms',
-                    '_self'
+                    '_blank'
                   )
                 } else {
                   setSearchParams({ category: item })
