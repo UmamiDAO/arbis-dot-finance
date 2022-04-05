@@ -161,6 +161,7 @@ export default function MarinateAutocompounder() {
 
       const isUmami = (symbol: string) => symbol === 'UMAMI'
 
+      // eslint-disable-next-line
       const reward1: Reward = {
         address: rewardToken1,
         symbol: rewardTokenSymbol1,
