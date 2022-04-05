@@ -354,10 +354,6 @@ export default function StArbisFarm() {
     return () => clearInterval(interval)
   }, [state.status, populateState])
 
-  if (state.status !== 'resolved') {
-    return null
-  }
-
   return (
     <DashboardCard>
       <DashboardCard.Title>Arbis</DashboardCard.Title>

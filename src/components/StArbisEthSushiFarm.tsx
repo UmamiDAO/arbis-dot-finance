@@ -279,10 +279,6 @@ export default function StArbisEthSushiFarm() {
     return () => clearInterval(interval)
   }, [state.initialized, handleState])
 
-  if (!state.initialized) {
-    return null
-  }
-
   return (
     <DashboardCard>
       <DashboardCard.Title>ARBIS/ETH Sushi LP</DashboardCard.Title>

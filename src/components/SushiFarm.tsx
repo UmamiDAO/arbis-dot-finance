@@ -314,10 +314,6 @@ export default function SushiFarm({ farmName, farmAddress, farmAbi }: Props) {
     return () => clearInterval(interval)
   }, [state.isInitialized, handleState])
 
-  if (!state.isInitialized) {
-    return null
-  }
-
   return (
     <DashboardCard>
       <DashboardCard.Title>{farmName}</DashboardCard.Title>
