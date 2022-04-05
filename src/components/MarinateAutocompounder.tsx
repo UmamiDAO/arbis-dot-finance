@@ -180,7 +180,7 @@ export default function MarinateAutocompounder() {
             : formatUnits(availableTokenRewards2, 28)
         ),
       }
-      setRewardsState([reward1, reward2])
+      setRewardsState([reward2])
     } catch (err) {
       console.log({
         err,
@@ -327,7 +327,7 @@ export default function MarinateAutocompounder() {
   const rewards = React.useMemo(() => {
     return rewardsState.length ? (
       <DashboardCard.More>
-        <strong>Current Reward(s):</strong>
+        <strong>Current Reward(s) For Pool:</strong>
 
         {rewardsState.map((reward) => (
           <div key={reward.address} className="flex justify-between">
