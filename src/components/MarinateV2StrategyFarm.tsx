@@ -126,25 +126,14 @@ export default function MarinateV2StrategyFarm() {
       const address = await farmContract.rewardTokens(0)
       const rewardContract = new Contract(address, ERC20ABI, userSigner)
 
-      const [symbol, rewards, cmUmamiRewards] = await Promise.all([
+      const [symbol, rewards] = await Promise.all([
         rewardContract.symbol(),
         farmContract.getAvailableTokenRewards(userAddress, address),
-        farmContract.getAvailableTokenRewards(userAddress, tokenState.address),
       ])
 
       const availableTokenRewards = Number(formatUnits(rewards, 18))
-      const cmUmamiAvailableTokenRewards = Number(
-        formatUnits(cmUmamiRewards, 18)
-      )
 
-      setRewardsState([
-        { address, symbol, availableTokenRewards },
-        {
-          address: tokenState.address,
-          symbol: tokenState.symbol,
-          availableTokenRewards: cmUmamiAvailableTokenRewards,
-        },
-      ])
+      setRewardsState([{ address, symbol, availableTokenRewards }])
     } catch (err) {
       console.log({
         err,
