@@ -9,6 +9,7 @@ const categories = [
   'arbis',
   'sushi',
   'mumami',
+  'stargate',
   /*  'swapr', 'nyan', */ 'legacy',
 ]
 
@@ -56,14 +57,24 @@ export default function Farms() {
               key={item}
               text={`${item.replace('-', ' ')}`}
               onClick={() => {
-                if (item === 'legacy') {
-                  window.open(
-                    'https://old.arbis.finance/#/legacy-farms',
-                    '_self'
-                  )
-                } else {
-                  setSearchParams({ category: item })
+                switch (item) {
+                  case 'legacy':
+                    window.open(
+                      'https://old.arbis.finance/#/legacy-farms',
+                      '_self'
+                    );
+                    break;
+                  case 'stargate':
+                    window.open(
+                      'https://stargator.finance',
+                      '_self'
+                    )
+                    break;
+                  default:
+                    setSearchParams({ category: item });
+                    break;
                 }
+               
               }}
               selected={item === category}
             />
