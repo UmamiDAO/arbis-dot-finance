@@ -18,6 +18,11 @@ export type Strategy = {
 }
 
 export type Horseysauce = {
+  cmUmamiBooster: {
+    arbisApy: string
+    arbisApr: string
+    totalApy: string
+  }
   strategies: Strategy[]
   stArbisEth: {
     apr: string

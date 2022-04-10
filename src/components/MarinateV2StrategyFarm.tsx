@@ -10,6 +10,7 @@ import useUserAddress from '../hooks/useUserAddress'
 import useUserSigner from '../hooks/useUserSigner'
 import useExternalContractLoader from '../hooks/useExternalContractLoader'
 import useTransaction, { notify } from '../hooks/useTransaction'
+import useGlobalState from '../hooks/useGlobalState'
 
 import mUMAMIAutocompounderFarm from '../contracts/mUMAMIAutocompounderFarm.address'
 import MarinateV2StrategyABI from '../contracts/MarinateV2Strategy.abi'
@@ -88,6 +89,7 @@ export default function MarinateV2StrategyFarm() {
   const [tokenState, setTokenState] = React.useState(initTokenState)
   const [rewardsState, setRewardsState] = React.useState<Reward[]>([])
   const [action, setAction] = React.useState<'deposit' | 'withdraw'>('deposit')
+  const [{ horseysauce }] = useGlobalState()
 
   const userAddress = useUserAddress()
   const userSigner = useUserSigner()
@@ -363,14 +365,19 @@ export default function MarinateV2StrategyFarm() {
     ) : null
   }, [rewardsState])
 
+  const estimatedAPY = React.useMemo(() => {
+    if (!horseysauce) {
+      return '~50%'
+    }
+    return `${horseysauce.cmUmamiBooster.totalApy}%`
+  }, [horseysauce])
+
   return (
     <DashboardCard>
       <DashboardCard.Title>{farmName}</DashboardCard.Title>
 
       <DashboardCard.Subtitle>
-        <span className="font-extrabold">
-          Est. APY for ${tokenState.symbol} w/ ARBIS Booster: 100+%
-        </span>
+        <span className="font-extrabold">{estimatedAPY} APY</span>
         <span className="text-gray-500 font-light"> | </span>
         <a
           href={`https://arbiscan.io/address/${farmAddress}`}
