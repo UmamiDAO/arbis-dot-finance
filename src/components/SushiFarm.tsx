@@ -314,29 +314,43 @@ export default function SushiFarm({ farmName, farmAddress, farmAbi }: Props) {
     return () => clearInterval(interval)
   }, [state.isInitialized, handleState])
 
+  const APY = React.useMemo(() => {
+    if (!horseysauce) {
+      return 0
+    }
+    const farmStrat = horseysauce.strategies.find(
+      ({ address }) => address === farmAddress
+    )
+    return farmStrat ? farmStrat.apy : 0
+  }, [horseysauce, farmAddress])
+
   return (
     <DashboardCard>
       <DashboardCard.Title>{farmName}</DashboardCard.Title>
 
       <DashboardCard.Subtitle>
+        {APY ? (
+          <>
+            <span className="font-extrabold">{APY}% APY</span>
+            <span className="text-gray-500 font-light"> | </span>
+          </>
+        ) : null}
         <a
           href={`https://arbiscan.io/address/${farmAddress}`}
           target="_blank"
           rel="noopener noreferrer"
           className="text-gray-500 font-normal"
         >
-          {farmAddress.slice(0, 8)}...
+          Contract
         </a>
       </DashboardCard.Subtitle>
 
       <DashboardCard.Content>
         <p className="mt-4">
           <span>
-            Stake your ${state.tokenSymbol} for ${state.tokenName} to earn
-            passive ${state.farmSymbol}&nbsp;
+            Compound your rewards for your {state.tokenName} $
+            {state.tokenSymbol} token for higher APY!
           </span>
-
-          <span>in Arbis to let them compound automatically!</span>
         </p>
 
         <div className="mt-8">
@@ -345,22 +359,24 @@ export default function SushiFarm({ farmName, farmAddress, farmAbi }: Props) {
             <div className="text-right">
               {Number(state.farmTotalDeposits) ? (
                 <>
+                  ~
                   {parseFloat(String(state.farmTotalDeposits)).toLocaleString()}
                   <span> ${state.tokenSymbol}</span>
                 </>
               ) : null}
               {Number(totalValueStaked) ? (
                 <>
-                  <span> === </span>
                   <span>
-                    ${Number(totalValueStaked).toLocaleString('en-us')}
+                    (${Number(totalValueStaked).toLocaleString('en-us')})
                   </span>
                 </>
               ) : null}
             </div>
           </div>
 
-          <div className="flex justify-between">
+          <hr className="mt-2" />
+
+          <div className="flex mt-2 justify-between">
             <strong>1 ${state.farmSymbol}:</strong>
             <div className="text-right">
               {Number(state.farmTokensPerShare).toFixed(3)} ${state.tokenSymbol}

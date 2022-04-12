@@ -18,6 +18,15 @@ export type Strategy = {
 }
 
 export type Horseysauce = {
+  marinate: {
+    marinateTVL: string
+    distributions: number
+    totalWeth: string
+    wethAnnualized: string
+    wethAnnualDollarValue: string
+    apr: string
+    apy: string
+  }
   cmUmamiBooster: {
     arbisApy: string
     arbisApr: string

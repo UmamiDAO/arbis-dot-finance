@@ -385,20 +385,18 @@ export default function MarinateV2StrategyFarm() {
           rel="noopener noreferrer"
           className="text-gray-500 font-normal"
         >
-          {farmAddress.slice(0, 8)}...
+          Contract
         </a>
       </DashboardCard.Subtitle>
 
       <DashboardCard.Content>
         <p className="mt-4">
-          Don't forget to deposit your ${tokenState.symbol} to our $ARBIS
-          Booster to start raking in savory $ARBIS rewards!
+          Deposit your ${tokenState.symbol} for boosted $ARBIS rewards!
         </p>
 
         <strong className="block mt-4">
-          Deposited cmUMAMI will be timelocked for 30 days from the time of
-          deposit. After the 30 days, any withdrawal in the following 8 weeks
-          will be subject to a 3% fee.
+          Deposited $cmUMAMI will be timelocked for 30 days from the time of
+          deposit. There is a 3% withdrawal fee.
         </strong>
 
         <p className="mt-4">Rewards can be claimed at any time.</p>

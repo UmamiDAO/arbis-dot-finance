@@ -2,7 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { Link, useResolvedPath, useMatch, useNavigate } from 'react-router-dom';
 
-const ListItem = styled.li`
+export const ListItem = styled.li`
   position: relative;
 
   &:hover {

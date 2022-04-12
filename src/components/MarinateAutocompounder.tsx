@@ -331,7 +331,7 @@ export default function MarinateAutocompounder() {
     if (!horseysauce) {
       return '~50%'
     }
-    return `${horseysauce.cmUmamiBooster.arbisApy}%`
+    return `${horseysauce.marinate.apy}%`
   }, [horseysauce])
 
   const rewards = React.useMemo(() => {
@@ -362,14 +362,13 @@ export default function MarinateAutocompounder() {
           rel="noopener noreferrer"
           className="text-gray-500 font-normal"
         >
-          {farmAddress.slice(0, 8)}...
+          Contract
         </a>
       </DashboardCard.Subtitle>
 
       <DashboardCard.Content>
         <p className="mt-4">
-          Stake your ${state.tokenSymbol} for ${state.farmSymbol} to start
-          autocompounding your ${state.tokenSymbol} for higher APY.
+          Autocompound your ${state.tokenSymbol} your for higher APY.
         </p>
 
         <div className="mt-8">
@@ -393,7 +392,9 @@ export default function MarinateAutocompounder() {
             </div>
           </div>
 
-          <div className="flex justify-between">
+          <hr className="mt-2" />
+
+          <div className="flex mt-2 justify-between">
             <strong>1 {state.farmSymbol}:</strong>
             <div className="text-right">
               {Number(state.farmTokensPerShare).toFixed(3)} {state.tokenSymbol}

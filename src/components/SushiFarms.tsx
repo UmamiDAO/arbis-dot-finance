@@ -1,13 +1,14 @@
 import React from 'react'
-import { useKeenSlider } from 'keen-slider/react'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCaretLeft, faCaretRight } from '@fortawesome/free-solid-svg-icons'
+// import { useKeenSlider } from 'keen-slider/react'
+// import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+// import { faCaretLeft, faCaretRight } from '@fortawesome/free-solid-svg-icons'
 
 import UIWrapper from './UIWrapper'
 import { sushiFarms } from '../FarmLists'
 import SushiFarm from './SushiFarm'
 
 export default function SushiFarms() {
+  /*
   const [isInitPosition, setInitPosition] = React.useState<boolean>(true)
   const [isLastPosition, setLastPosition] = React.useState<boolean>(false)
 
@@ -43,9 +44,19 @@ export default function SushiFarms() {
       </div>
     ))
   }, [])
+  */
+
+  const cards = React.useMemo(() => {
+    return sushiFarms.map(({ address, name, abi }, idx) => (
+      <div key={address} className={idx > 1 ? 'mt-8' : 'mt-8 lg:mt-0 first:mt-0'}>
+        <SushiFarm farmName={name} farmAddress={address} farmAbi={abi} />
+      </div>
+    ))
+  }, [])
 
   return (
     <UIWrapper>
+      {/*
       <div className="relative">
         {slider ? (
           <div
@@ -73,6 +84,8 @@ export default function SushiFarms() {
           {slides}
         </div>
       </div>
+      */}
+      <div className="mt-8 lg:grid lg:grid-cols-2 gap-8">{cards}</div>
     </UIWrapper>
   )
 }
