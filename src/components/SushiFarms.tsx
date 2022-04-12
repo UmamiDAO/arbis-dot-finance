@@ -48,7 +48,7 @@ export default function SushiFarms() {
 
   const cards = React.useMemo(() => {
     return sushiFarms.map(({ address, name, abi }, idx) => (
-      <div key={address} className={idx > 1 ? 'mt-8' : ''}>
+      <div key={address} className={idx > 1 ? 'mt-8' : 'mt-8 lg:mt-0 first:mt-0'}>
         <SushiFarm farmName={name} farmAddress={address} farmAbi={abi} />
       </div>
     ))

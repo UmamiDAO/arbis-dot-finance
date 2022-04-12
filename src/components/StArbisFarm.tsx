@@ -395,7 +395,9 @@ export default function StArbisFarm() {
             <div className="text-right">${tvlInDollars}</div>
           </div>
 
-          <div className="flex justify-between">
+          <hr className="mt-2" />
+
+          <div className="flex mt-2 justify-between">
             <strong>1 ${state.symbol}:</strong>
             <div className="text-right">1 ${state.tokenSymbol}</div>
           </div>

@@ -392,7 +392,9 @@ export default function MarinateAutocompounder() {
             </div>
           </div>
 
-          <div className="flex justify-between">
+          <hr className="mt-2" />
+
+          <div className="flex mt-2 justify-between">
             <strong>1 {state.farmSymbol}:</strong>
             <div className="text-right">
               {Number(state.farmTokensPerShare).toFixed(3)} {state.tokenSymbol}
