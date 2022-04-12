@@ -32,17 +32,14 @@ export default function ArbisFarms() {
     <UIWrapper>
       <div className="relative">
         {slider ? (
-          <div
-            className="hidden absolute left-0 right-0 lg:flex lg:items-center lg:justify-between lg:mt-4 lg:-mx-8"
-            style={{ top: '0.5rem' }}
-          >
+          <div className="hidden absolute left-0 top-2 right-0 lg:flex lg:items-center lg:justify-between lg:mt-4 lg:-mx-10">
             <button
               type="button"
               onClick={() => slider?.current?.prev()}
               disabled={isInitPosition}
               className={isInitPosition ? 'opacity-0 pointer-events-none' : ''}
             >
-              <FontAwesomeIcon icon={faCaretLeft} size="2x" />
+              <FontAwesomeIcon icon={faCaretLeft} size="4x" />
             </button>
             <button
               type="button"
@@ -50,7 +47,7 @@ export default function ArbisFarms() {
               disabled={isLastPosition}
               className={isLastPosition ? 'opacity-0 pointer-events-none' : ''}
             >
-              <FontAwesomeIcon icon={faCaretRight} size="2x" />
+              <FontAwesomeIcon icon={faCaretRight} size="4x" />
             </button>
           </div>
         ) : null}

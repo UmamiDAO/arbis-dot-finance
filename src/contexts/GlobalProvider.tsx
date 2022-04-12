@@ -8,6 +8,11 @@ import GlobalContext, {
 } from './GlobalContext'
 
 const defaultStats = {
+  cmUmamiBooster: {
+    arbisApr: '0',
+    arbisApy: '0',
+    totalApy: '0',
+  },
   strategies: [],
   stArbisEth: {
     apr: '0',

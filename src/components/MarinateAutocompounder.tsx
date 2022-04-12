@@ -10,6 +10,7 @@ import useUserAddress from '../hooks/useUserAddress'
 import useUserSigner from '../hooks/useUserSigner'
 import useExternalContractLoader from '../hooks/useExternalContractLoader'
 import useTransaction, { notify } from '../hooks/useTransaction'
+import useGlobalState from '../hooks/useGlobalState'
 
 import mUMAMIAutocompounderAddress from '../contracts/mUMAMIAutocompounder.address'
 import MarinateV2StrategyABI from '../contracts/MarinateV2Strategy.abi'
@@ -45,6 +46,7 @@ export default function MarinateAutocompounder() {
   const [tokenAddr, setTokenAddr] = React.useState<string | null>(null)
   const [rewardsState, setRewardsState] = React.useState<Reward[]>([])
   const [action, setAction] = React.useState<'deposit' | 'withdraw'>('deposit')
+  const [{ horseysauce }] = useGlobalState()
 
   const userAddress = useUserAddress()
   const userSigner = useUserSigner()
@@ -325,6 +327,13 @@ export default function MarinateAutocompounder() {
     return amounts.filter((amt) => amt > 0).length === 0
   }, [rewardsState])
 
+  const estimatedAPY = React.useMemo(() => {
+    if (!horseysauce) {
+      return '~50%'
+    }
+    return `${horseysauce.cmUmamiBooster.arbisApy}%`
+  }, [horseysauce])
+
   const rewards = React.useMemo(() => {
     return rewardsState.length ? (
       <DashboardCard.More>
@@ -345,7 +354,7 @@ export default function MarinateAutocompounder() {
       <DashboardCard.Title>{farmName}</DashboardCard.Title>
 
       <DashboardCard.Subtitle>
-        <span className="font-extrabold">Est. APY: ~50%</span>
+        <span className="font-extrabold">{estimatedAPY} APY</span>
         <span className="text-gray-500 font-light"> | </span>
         <a
           href={`https://arbiscan.io/address/${farmAddress}`}
