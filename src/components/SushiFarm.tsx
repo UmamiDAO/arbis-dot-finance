@@ -332,11 +332,9 @@ export default function SushiFarm({ farmName, farmAddress, farmAbi }: Props) {
       <DashboardCard.Content>
         <p className="mt-4">
           <span>
-            Stake your ${state.tokenSymbol} for ${state.tokenName} to earn
-            passive ${state.farmSymbol}&nbsp;
+            Compound your rewards for your {state.tokenName} $
+            {state.tokenSymbol} token for higher APY!
           </span>
-
-          <span>in Arbis to let them compound automatically!</span>
         </p>
 
         <div className="mt-8">

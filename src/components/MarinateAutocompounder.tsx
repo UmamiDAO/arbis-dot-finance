@@ -362,14 +362,13 @@ export default function MarinateAutocompounder() {
           rel="noopener noreferrer"
           className="text-gray-500 font-normal"
         >
-          {farmAddress.slice(0, 8)}...
+          Contract
         </a>
       </DashboardCard.Subtitle>
 
       <DashboardCard.Content>
         <p className="mt-4">
-          Stake your ${state.tokenSymbol} for ${state.farmSymbol} to start
-          autocompounding your ${state.tokenSymbol} for higher APY.
+          Autocompound your ${state.tokenSymbol} your for higher APY.
         </p>
 
         <div className="mt-8">
