@@ -331,7 +331,7 @@ export default function MarinateAutocompounder() {
     if (!horseysauce) {
       return '~50%'
     }
-    return `${horseysauce.cmUmamiBooster.arbisApy}%`
+    return `${horseysauce.marinate.apy}%`
   }, [horseysauce])
 
   const rewards = React.useMemo(() => {

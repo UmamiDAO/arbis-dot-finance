@@ -8,6 +8,15 @@ import GlobalContext, {
 } from './GlobalContext'
 
 const defaultStats = {
+  marinate: {
+    marinateTVL: '0',
+    distributions: 0,
+    wethAnnualized: '0',
+    wethAnnualDollarValue: '0',
+    totalWeth: '0',
+    apr: '0',
+    apy: '0',
+  },
   cmUmamiBooster: {
     arbisApr: '0',
     arbisApy: '0',
