@@ -1,17 +1,11 @@
 import React from 'react'
-import { formatEther } from '@ethersproject/units'
 import { useNavigate } from 'react-router-dom'
 
 import useGlobalState from '../hooks/useGlobalState'
 import DashboardCard from './DashboardCard'
-import useExternalContractLoader from '../hooks/useExternalContractLoader'
-import NyanRewardsContractAbi from '../contracts/NyanRewardsContract.abi'
-
-import { STAKING_POOL_ADDRESSES } from '../config'
 
 export default function Home() {
   const navigate = useNavigate()
-  const [nyanAPY, setNyanAPY] = React.useState<number | null>(null)
   const [{ horseysauce }] = useGlobalState()
 
   const { arbisPrice, arbisTVL } = React.useMemo(() => {
@@ -21,37 +15,6 @@ export default function Home() {
 
     return { ...horseysauce, arbisTVL: horseysauce.tvl }
   }, [horseysauce])
-
-  const nyanContract = useExternalContractLoader(
-    STAKING_POOL_ADDRESSES.NYAN,
-    NyanRewardsContractAbi
-  )
-
-  const getNyanAPY = React.useCallback(async () => {
-    if (!nyanContract || nyanAPY !== null) {
-      return null
-    }
-
-    try {
-      const rewardRate = await nyanContract.rewardRate()
-      const totalSupply = await nyanContract.totalSupply()
-      const SECONDS_PER_YEAR = 365.25 * 24 * 60 * 60
-      const apr =
-        (100 * parseFloat(formatEther(rewardRate)) * SECONDS_PER_YEAR) /
-        parseFloat(formatEther(totalSupply))
-
-      const apy = ((1 + apr / 100 / 12) ** 12 - 1) * 100
-      setNyanAPY(apy)
-    } catch (err) {
-      console.log(err)
-    }
-  }, [nyanContract, nyanAPY])
-
-  React.useEffect(() => {
-    if (nyanContract) {
-      getNyanAPY()
-    }
-  }, [nyanContract, getNyanAPY])
 
   return (
     <main className="px-4 mt-8">
@@ -94,25 +57,7 @@ export default function Home() {
           </DashboardCard.Content>
 
           <DashboardCard.Footer>
-            {nyanAPY ? (
-              <div className="flex w-full justify-between">
-                <strong className="w-20">Top Yield Farm</strong>
-                {nyanAPY !== null ? (
-                  <div className="text-right">
-                    <div className="text-gray-400">NYAN</div>
-                    <div>{Math.floor(nyanAPY).toLocaleString()}%</div>
-                  </div>
-                ) : null}
-              </div>
-            ) : null}
-
             <div className="mt-4 flex justify-between">
-              {0 ? (
-                <DashboardCard.Action color="white" onClick={() => {}}>
-                  buy & stake
-                </DashboardCard.Action>
-              ) : null}
-
               <DashboardCard.Action
                 color="black"
                 onClick={() =>
