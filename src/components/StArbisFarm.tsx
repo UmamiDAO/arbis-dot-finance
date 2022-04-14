@@ -211,7 +211,7 @@ export default function StArbisFarm() {
       }
 
       try {
-        const amount = parseEther(String(Number(depositAmount).toFixed(9)))
+        const amount = parseEther(String(Number(depositAmount)))
         const data = await farmContract.interface.encodeFunctionData('stake', [
           amount,
         ])
@@ -223,7 +223,7 @@ export default function StArbisFarm() {
         notify.notification({
           eventCode: 'txError',
           type: 'error',
-          message: (err as Error).message,
+          message: (err as any).data.message || (err as any).message,
           autoDismiss: 10000,
         })
       }
@@ -238,7 +238,7 @@ export default function StArbisFarm() {
       }
 
       try {
-        const amount = parseEther(String(Number(withdrawAmount).toFixed(9)))
+        const amount = parseEther(String(Number(withdrawAmount)))
         const data = await farmContract.interface.encodeFunctionData(
           'withdraw',
           [amount]

@@ -225,7 +225,9 @@ export default function MarinateAutocompounder() {
 
       try {
         await transaction(
-          farmContract.withdraw(parseUnits(String(Number(withdrawAmount)), 9))
+          farmContract.withdraw(
+            parseUnits(String(withdrawAmount), 9)
+          )
         )
       } catch (err) {
         notify.notification({

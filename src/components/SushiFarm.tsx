@@ -187,7 +187,7 @@ export default function SushiFarm({ farmName, farmAddress, farmAbi }: Props) {
       }
 
       try {
-        const amount = parseEther(String(Number(depositAmount).toFixed(8)))
+        const amount = parseEther(String(Number(depositAmount)))
         const data = await farmContract.interface.encodeFunctionData(
           'deposit',
           [amount]
