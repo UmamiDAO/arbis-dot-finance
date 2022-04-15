@@ -46,7 +46,7 @@ export default function NavigationLink({ link }: Props) {
   return (
     <ListItem
       key={text}
-      className="text-center inline-block mr-8 cursor-pointer inline-block uppercase font-display font-extrabold transition duration-500 hover:text-primary"
+      className="text-center inline-block md:mr-8 cursor-pointer inline-block uppercase font-display font-extrabold transition duration-200 hover:text-primary"
       tabIndex={-1}
       onClick={() => navigate(href)}
       data-active={isActive ? 'true' : 'false'}

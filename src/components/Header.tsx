@@ -1,6 +1,7 @@
 import React from 'react'
 import Navigation from './Navigation'
 import ConnectWallet from './ConnectWallet'
+import MobileNavigation from './MobileNavigation'
 
 export default function Header() {
   return (
@@ -14,7 +15,10 @@ export default function Header() {
           />
         </div>
         <Navigation />
-        <ConnectWallet />
+        <div className="hidden px-4 md:block">
+          <ConnectWallet />
+        </div>
+        <MobileNavigation />
       </div>
     </header>
   )

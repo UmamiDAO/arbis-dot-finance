@@ -83,11 +83,13 @@ export default function MarinateV2StrategyFarm() {
     name: null,
     symbol: null,
     address: null,
+    tokensPerShare: null,
   }
 
   const [farmState, setFarmState] = React.useState(initFarmState)
   const [tokenState, setTokenState] = React.useState(initTokenState)
   const [rewardsState, setRewardsState] = React.useState<Reward[]>([])
+  const [compoundedTokenSymbol, setCompoundedTokenSymbol] = React.useState(null)
   const [action, setAction] = React.useState<'deposit' | 'withdraw'>('deposit')
   const [{ horseysauce }] = useGlobalState()
 
@@ -118,6 +120,24 @@ export default function MarinateV2StrategyFarm() {
       })
     }
   }, [farmContract, tokenState])
+
+  const handleCompoundedTokenSymbol = React.useCallback(async () => {
+    if (!userSigner || !tokenContract || compoundedTokenSymbol) {
+      return
+    }
+
+    try {
+      const address = await tokenContract.depositToken()
+      const contract = new Contract(address, ERC20ABI, userSigner)
+      setCompoundedTokenSymbol(await contract.symbol())
+    } catch (err) {
+      console.log({
+        err,
+        callingFunc: 'handleCompoundedTokenSymbol',
+        callingFarmName: farmName,
+      })
+    }
+  }, [tokenContract, compoundedTokenSymbol, userSigner])
 
   const handleRewards = React.useCallback(async () => {
     if (!userSigner || !farmContract || !userAddress || !tokenState.address) {
@@ -156,11 +176,13 @@ export default function MarinateV2StrategyFarm() {
     }
 
     try {
-      const [name, symbol] = await Promise.all([
+      const [name, symbol, depositTokensPerShare] = await Promise.all([
         tokenContract.name(),
         tokenContract.symbol(),
+        tokenContract.getDepositTokensForShares(parseUnits('1.0', 9)),
       ])
-      setTokenState({ ...tokenState, name, symbol })
+      const tokensPerShare = formatUnits(depositTokensPerShare, 9)
+      setTokenState({ ...tokenState, name, symbol, tokensPerShare })
     } catch (err) {
       console.log({
         err,
@@ -311,6 +333,12 @@ export default function MarinateV2StrategyFarm() {
   }, [tokenState.address, handleTokenAddress])
 
   React.useEffect(() => {
+    if (compoundedTokenSymbol === null) {
+      handleCompoundedTokenSymbol()
+    }
+  }, [compoundedTokenSymbol, handleCompoundedTokenSymbol])
+
+  React.useEffect(() => {
     if (!rewardsState.length) {
       handleRewards()
     }
@@ -350,6 +378,32 @@ export default function MarinateV2StrategyFarm() {
     )
   }, [rewardsState])
 
+  const earnings = React.useMemo(() => {
+    const earningsAmount =
+      farmState.stakedBalance && tokenState.tokensPerShare
+        ? Number(farmState.stakedBalance) * Number(tokenState.tokensPerShare) -
+          Number(farmState.stakedBalance)
+        : 0
+
+    return earningsAmount ? (
+      <>
+        <hr className="mt-2" />
+
+        <div className="flex mt-2 justify-between">
+          <strong>Earnings:</strong>
+          <div className="text-right">
+            <span>+{earningsAmount.toFixed(earningsAmount < 1 ? 6 : 2)} </span>
+            <span>{compoundedTokenSymbol}</span>
+          </div>
+        </div>
+      </>
+    ) : null
+  }, [
+    farmState.stakedBalance,
+    tokenState.tokensPerShare,
+    compoundedTokenSymbol,
+  ])
+
   const rewards = React.useMemo(() => {
     return rewardsState?.length ? (
       <DashboardCard.More>
@@ -367,7 +421,7 @@ export default function MarinateV2StrategyFarm() {
 
   const estimatedAPY = React.useMemo(() => {
     if (!horseysauce) {
-      return '~50%'
+      return 'UNABLE TO CALCULATE'
     }
     return `${horseysauce.cmUmamiBooster.totalApy}%`
   }, [horseysauce])
@@ -377,8 +431,10 @@ export default function MarinateV2StrategyFarm() {
       <DashboardCard.Title>{farmName}</DashboardCard.Title>
 
       <DashboardCard.Subtitle>
-        <span className="font-extrabold">{estimatedAPY} APY</span>
-        <span className="text-gray-500 font-light"> | </span>
+        <span className="text-lg">
+          <span className="font-extrabold">{estimatedAPY} APY</span>
+          <span className="text-gray-500 font-light"> | </span>
+        </span>
         <a
           href={`https://arbiscan.io/address/${farmAddress}`}
           target="_blank"
@@ -413,6 +469,7 @@ export default function MarinateV2StrategyFarm() {
               ) : null}
             </div>
           </div>
+          {earnings}
         </div>
 
         <div className="mt-4">

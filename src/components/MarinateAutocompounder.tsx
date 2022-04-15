@@ -225,15 +225,13 @@ export default function MarinateAutocompounder() {
 
       try {
         await transaction(
-          farmContract.withdraw(
-            parseUnits(String(withdrawAmount), 9)
-          )
+          farmContract.withdraw(parseUnits(String(withdrawAmount), 9))
         )
       } catch (err) {
         notify.notification({
           eventCode: 'txError',
           type: 'error',
-          message: (err as Error).message,
+          message: (err as any).data.message || (err as Error).message,
           autoDismiss: 2000,
         })
       } finally {
@@ -331,15 +329,43 @@ export default function MarinateAutocompounder() {
 
   const estimatedAPY = React.useMemo(() => {
     if (!horseysauce) {
-      return '~50%'
+      return 'Unable to calculate'
     }
     return `${horseysauce.marinate.apy}%`
   }, [horseysauce])
 
+  const earnings = React.useMemo(() => {
+    const earningsAmount =
+      state.farmShareBalance && state.farmTokensPerShare
+        ? Number(state.farmShareBalance) * Number(state.farmTokensPerShare) -
+          Number(state.farmShareBalance)
+        : 0
+
+    return earningsAmount ? (
+      <>
+        <hr className="mt-2" />
+
+        <div className="flex mt-2 justify-between">
+          <strong>Earnings:</strong>
+          <div className="text-right">
+            <span>+{earningsAmount.toFixed(earningsAmount < 1 ? 6 : 2)} </span>
+            <span>{state.tokenSymbol}</span>
+          </div>
+        </div>
+      </>
+    ) : null
+  }, [state.farmShareBalance, state.farmTokensPerShare, state.tokenSymbol])
+
   const rewards = React.useMemo(() => {
-    return rewardsState.length ? (
+    const hasRewards = rewardsState.length
+      ? rewardsState.filter(
+          ({ availableTokenRewards }) => availableTokenRewards > 0
+        ).length > 0
+      : false
+
+    return rewardsState.length && hasRewards ? (
       <DashboardCard.More>
-        <strong>Current Reward(s) For Pool:</strong>
+        <strong>Current Reward(s) For Compounding:</strong>
 
         {rewardsState.map((reward) => (
           <div key={reward.address} className="flex justify-between">
@@ -351,13 +377,29 @@ export default function MarinateAutocompounder() {
     ) : null
   }, [rewardsState])
 
+  const compoundButton = React.useMemo(() => {
+    return !disableCompound ? (
+      <div className="mt-4">
+        <DashboardCard.Action
+          color="black"
+          disabled={disableCompound}
+          onClick={handleCompound}
+        >
+          Compound
+        </DashboardCard.Action>
+      </div>
+    ) : null
+  }, [disableCompound, handleCompound])
+
   return (
     <DashboardCard>
       <DashboardCard.Title>{farmName}</DashboardCard.Title>
 
       <DashboardCard.Subtitle>
-        <span className="font-extrabold">{estimatedAPY} APY</span>
-        <span className="text-gray-500 font-light"> | </span>
+        <span className="text-lg">
+          <span className="font-extrabold">{estimatedAPY} APY</span>
+          <span className="text-gray-500 font-light"> | </span>
+        </span>
         <a
           href={`https://arbiscan.io/address/${farmAddress}`}
           target="_blank"
@@ -403,6 +445,8 @@ export default function MarinateAutocompounder() {
             </div>
           </div>
         </div>
+
+        {earnings}
 
         <div className="mt-4">
           <Selector>
@@ -549,15 +593,7 @@ export default function MarinateAutocompounder() {
           </div>
         ) : null}
 
-        <div className="mt-4">
-          <DashboardCard.Action
-            color="black"
-            disabled={disableCompound}
-            onClick={handleCompound}
-          >
-            Compound
-          </DashboardCard.Action>
-        </div>
+        {compoundButton}
       </DashboardCard.Content>
 
       {rewards}
