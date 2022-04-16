@@ -177,7 +177,7 @@ export default function StArbisFarm() {
       if (approved) {
         if (!BigNumber.from('0').eq(approved)) {
           if (tokenBalance) {
-            if (BigNumber.from(rawTokenBalance ).gte(approved)) {
+            if (BigNumber.from(rawTokenBalance ).lte(approved)) {
               isApproved = true;
             }
           }
