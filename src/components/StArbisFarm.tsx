@@ -173,7 +173,16 @@ export default function StArbisFarm() {
       const avaiableCheems = formatEther(rawAvailableCheems)
       const avaiableUmami = formatEther(rawAvailableUmami)
 
-      const isApproved = approved ? (!BigNumber.from('0').eq(approved) ? BigNumber.from(tokenBalance).gte(approved): false ) : false;
+      let isApproved = false;
+      if (approved) {
+        if (!BigNumber.from('0').eq(approved)) {
+          if (tokenBalance) {
+            if (BigNumber.from(tokenBalance ).gte(approved)) {
+              isApproved = true;
+            }
+          }
+        }
+      }
 
       dispatch({
         type: 'success',
