@@ -220,7 +220,7 @@ export default function StArbisFarm() {
       }
 
       try {
-        const amount = parseEther(String(Number(depositAmount).toFixed(9)))
+        const amount = parseEther(String(Math.floor(Number(depositAmount)).toFixed(9)))
         const data = await farmContract.interface.encodeFunctionData('stake', [
           amount,
         ])
