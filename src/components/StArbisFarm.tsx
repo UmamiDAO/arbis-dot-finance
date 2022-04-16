@@ -173,7 +173,7 @@ export default function StArbisFarm() {
       const avaiableCheems = formatEther(rawAvailableCheems)
       const avaiableUmami = formatEther(rawAvailableUmami)
 
-      const isApproved = !BigNumber.from('0').eq(approved)
+      const isApproved = approved ? (!BigNumber.from('0').eq(approved) ? BigNumber.from(tokenBalance).gte(approved): false ) : false;
 
       dispatch({
         type: 'success',
@@ -275,7 +275,7 @@ export default function StArbisFarm() {
     try {
       const data = await tokenContract.interface.encodeFunctionData('approve', [
         farmAddress,
-        state.tokenTotalSupply,
+        state.tokenBalance,
       ])
 
       await transaction(
