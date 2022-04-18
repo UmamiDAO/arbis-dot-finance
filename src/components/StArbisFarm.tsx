@@ -284,7 +284,7 @@ export default function StArbisFarm() {
     try {
       const data = await tokenContract.interface.encodeFunctionData('approve', [
         farmAddress,
-        state.tokenBalance,
+        parseEther(String(state.tokenBalance)),
       ])
 
       await transaction(
