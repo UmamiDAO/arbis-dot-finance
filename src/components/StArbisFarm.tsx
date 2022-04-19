@@ -17,7 +17,7 @@ import StArbisAbi from '../contracts/StArbis.abi'
 import ERC20Abi from '../contracts/ERC20.abi'
 
 const wETH = '0x82af49447d8a07e3bd95bd0d56f35241523fbab1'
-const Z2O = '0xdb96f8efd6865644993505318cc08ff9c42fb9ac'
+// const Z2O = '0xdb96f8efd6865644993505318cc08ff9c42fb9ac'
 const cheems = '0x75a2f30929c539e7d4ee033c9331b89f879c0cf7'
 const umami = '0x1622bF67e6e5747b81866fE0b85178a93C7F86e3'
 
@@ -37,7 +37,6 @@ export default function StArbisFarm() {
     shareBalance: null | string | number
     availableWETH: null | string | number
     availableARBIS: null | string | number
-    avaiableZ20: null | string | number
     avaiableCheems: null | string | number
     avaiableUmami: null | string | number
   } = {
@@ -53,7 +52,6 @@ export default function StArbisFarm() {
     shareBalance: null,
     availableWETH: null,
     availableARBIS: null,
-    avaiableZ20: null,
     avaiableCheems: null,
     avaiableUmami: null,
   }
@@ -78,7 +76,6 @@ export default function StArbisFarm() {
               shareBalance: null | string | number
               availableWETH: null | string | number
               availableARBIS: null | string | number
-              avaiableZ20: null | string | number
               avaiableCheems: null | string | number
               avaiableUmami: null | string | number
             }
@@ -144,7 +141,6 @@ export default function StArbisFarm() {
         rawShareBalance,
         rawAvailableWETH,
         rawAvailableARBIS,
-        rawAvailableZ20,
         rawAvailableCheems,
         rawAvailableUmami,
       ] = await Promise.all([
@@ -159,7 +155,6 @@ export default function StArbisFarm() {
         farmContract.balanceOf(userAddress),
         farmContract.getAvailableTokenRewards(wETH),
         farmContract.getAvailableTokenRewards(state.tokenAddress),
-        farmContract.getAvailableTokenRewards(Z2O),
         farmContract.getAvailableTokenRewards(cheems),
         farmContract.getAvailableTokenRewards(umami),
       ])
@@ -169,7 +164,6 @@ export default function StArbisFarm() {
       const shareBalance = parseFloat(formatEther(rawShareBalance))
       const availableWETH = formatEther(rawAvailableWETH)
       const availableARBIS = formatEther(rawAvailableARBIS)
-      const avaiableZ20 = formatEther(rawAvailableZ20)
       const avaiableCheems = formatEther(rawAvailableCheems)
       const avaiableUmami = formatEther(rawAvailableUmami)
 
@@ -198,7 +192,6 @@ export default function StArbisFarm() {
           isApproved,
           availableWETH,
           availableARBIS,
-          avaiableZ20,
           avaiableCheems,
           avaiableUmami,
         },
@@ -301,7 +294,7 @@ export default function StArbisFarm() {
   }, [userSigner, tokenContract, state, transaction])
 
   const handleCollect = React.useCallback(async () => {
-    if (!state.isApproved || !userSigner || !farmContract) {
+    if (!userSigner || !farmContract) {
       return
     }
 
@@ -321,13 +314,12 @@ export default function StArbisFarm() {
         autoDismiss: 10000,
       })
     }
-  }, [state.isApproved, userSigner, transaction, farmContract])
+  }, [userSigner, transaction, farmContract])
 
   const allRewards = React.useMemo(() => {
     return (
       Number(state.avaiableUmami) +
       Number(state.avaiableCheems) +
-      Number(state.avaiableZ20) +
       Number(state.availableARBIS) +
       Number(state.availableWETH)
     )
@@ -565,8 +557,8 @@ export default function StArbisFarm() {
         <div className="mt-4">
           <DashboardCard.Action
             color="black"
-            disabled={!state.isApproved || !allRewards}
-            onClick={() => handleCollect()}
+            disabled={!allRewards}
+            onClick={handleCollect}
           >
             Collect All
           </DashboardCard.Action>
@@ -592,10 +584,6 @@ export default function StArbisFarm() {
           <li className="flex justify-between">
             <div>{state.avaiableUmami}</div>
             <div>UMAMI</div>
-          </li>
-          <li className="flex justify-between">
-            <div>{state.avaiableZ20}</div>
-            <div>Z20</div>
           </li>
         </ul>
       </DashboardCard.More>
