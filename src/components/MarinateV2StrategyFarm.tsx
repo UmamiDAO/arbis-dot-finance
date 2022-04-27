@@ -579,7 +579,7 @@ export default function MarinateV2StrategyFarm() {
                         disabled={
                           (!Number(values.withdrawAmount) &&
                             Boolean(farmState.isApproved)) ||
-                          farmState.unlockTime !== 0
+                          Number(farmState.unlockTime) > 0
                         }
                       >
                         {farmState.isApproved ? (
@@ -588,7 +588,7 @@ export default function MarinateV2StrategyFarm() {
                               <span>withdrawing...</span>
                             ) : (
                               <span>
-                                {farmState.unlockTime ? (
+                                {Number(farmState.unlockTime) > 0 ? (
                                   <Countdown
                                     unlockTime={Number(farmState.unlockTime)}
                                   />
