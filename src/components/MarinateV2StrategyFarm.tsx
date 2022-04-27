@@ -426,6 +426,28 @@ export default function MarinateV2StrategyFarm() {
     return `${horseysauce.cmUmamiBooster.totalApy}%`
   }, [horseysauce])
 
+  const isLocked = React.useMemo(() => {
+    if (!farmState.unlockTime) {
+      return true
+    }
+    const currTime = new Date().getTime()
+    const unlockTime = new Date(Number(farmState.unlockTime) * 1000).getTime()
+
+    return unlockTime - currTime > 0
+  }, [farmState.unlockTime])
+
+  const lastDepositDisplay = React.useMemo(() => {
+    const lastDepositTime =
+      farmState.lastDepositTime !== null ? Number(farmState.lastDepositTime) * 1000 : 0
+
+    return farmState.lastDepositTime ? (
+      <div className="flex uppercase justify-between items-center">
+        <div>Last Deposit:</div>
+        <div>{new Date(lastDepositTime).toLocaleDateString('en-us')}</div>
+      </div>
+    ) : null
+  }, [farmState.lastDepositTime])
+
   return (
     <DashboardCard>
       <DashboardCard.Title>{farmName}</DashboardCard.Title>
@@ -560,7 +582,8 @@ export default function MarinateV2StrategyFarm() {
               {({ isSubmitting, handleSubmit, setFieldValue, values }) => (
                 <Form method="post">
                   <fieldset disabled={isSubmitting}>
-                    <div>
+                    {lastDepositDisplay}
+                    <div className="mt-2">
                       <span>ALL {tokenState.symbol} IS WITHDRAWN AT ONCE</span>
                     </div>
                     <Field
@@ -579,7 +602,7 @@ export default function MarinateV2StrategyFarm() {
                         disabled={
                           (!Number(values.withdrawAmount) &&
                             Boolean(farmState.isApproved)) ||
-                          Number(farmState.unlockTime) > 0
+                          isLocked
                         }
                       >
                         {farmState.isApproved ? (
