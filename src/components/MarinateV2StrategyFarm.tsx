@@ -438,7 +438,9 @@ export default function MarinateV2StrategyFarm() {
 
   const lastDepositDisplay = React.useMemo(() => {
     const lastDepositTime =
-      farmState.lastDepositTime !== null ? Number(farmState.lastDepositTime) * 1000 : 0
+      farmState.lastDepositTime !== null
+        ? Number(farmState.lastDepositTime) * 1000
+        : 0
 
     return farmState.lastDepositTime ? (
       <div className="flex uppercase justify-between items-center">
@@ -611,7 +613,7 @@ export default function MarinateV2StrategyFarm() {
                               <span>withdrawing...</span>
                             ) : (
                               <span>
-                                {Number(farmState.unlockTime) > 0 ? (
+                                {isLocked ? (
                                   <Countdown
                                     unlockTime={Number(farmState.unlockTime)}
                                   />
