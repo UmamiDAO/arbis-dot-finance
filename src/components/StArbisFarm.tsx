@@ -1,5 +1,5 @@
 import React from 'react'
-import { formatEther, parseEther } from '@ethersproject/units'
+import { formatEther, formatUnits, parseEther } from '@ethersproject/units'
 import { BigNumber } from 'ethers'
 import { Formik, Form, Field } from 'formik'
 
@@ -165,7 +165,7 @@ export default function StArbisFarm() {
       const availableWETH = formatEther(rawAvailableWETH)
       const availableARBIS = formatEther(rawAvailableARBIS)
       const avaiableCheems = formatEther(rawAvailableCheems)
-      const avaiableUmami = formatEther(rawAvailableUmami)
+      const avaiableUmami = formatUnits(rawAvailableUmami, 9)
 
       let isApproved = false
       if (approved) {
