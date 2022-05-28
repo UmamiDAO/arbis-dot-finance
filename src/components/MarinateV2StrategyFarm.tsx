@@ -367,16 +367,23 @@ export default function MarinateV2StrategyFarm() {
     return () => clearInterval(interval)
   }, [farmState.isInitialized, handleFarmState])
 
-  const disableClaim = React.useMemo(() => {
-    if (rewardsState.length === 0) {
+  const disableClaim = React.useMemo(
+    () => {
+      return false
+
+      /* if (rewardsState.length === 0) {
       return true
     }
 
     return (
       rewardsState.filter((reward) => reward.availableTokenRewards > 0)
         .length === 0
-    )
-  }, [rewardsState])
+    ) */
+    },
+    [
+      /* rewardsState */
+    ]
+  )
 
   const earnings = React.useMemo(() => {
     const earningsAmount =
@@ -426,17 +433,24 @@ export default function MarinateV2StrategyFarm() {
     return `${horseysauce.cmUmamiBooster.totalApy}%`
   }, [horseysauce])
 
-  const isLocked = React.useMemo(() => {
-    if (!farmState.unlockTime) {
+  const isLocked = React.useMemo(
+    () => {
+      return false
+
+      /* if (!farmState.unlockTime) {
       return true
     }
     const currTime = new Date().getTime()
     const unlockTime = new Date(Number(farmState.unlockTime) * 1000).getTime()
 
-    return unlockTime - currTime > 0
-  }, [farmState.unlockTime])
+    return unlockTime - currTime > 0 */
+    },
+    [
+      /* farmState.unlockTime */
+    ]
+  )
 
-  const lastDepositDisplay = React.useMemo(() => {
+  /* const lastDepositDisplay = React.useMemo(() => {
     const lastDepositTime =
       farmState.lastDepositTime !== null
         ? Number(farmState.lastDepositTime) * 1000
@@ -448,7 +462,7 @@ export default function MarinateV2StrategyFarm() {
         <div>{new Date(lastDepositTime).toLocaleDateString('en-us')}</div>
       </div>
     ) : null
-  }, [farmState.lastDepositTime])
+  }, [farmState.lastDepositTime]) */
 
   return (
     <DashboardCard>
@@ -471,15 +485,14 @@ export default function MarinateV2StrategyFarm() {
 
       <DashboardCard.Content>
         <p className="mt-4">
-          Deposit your ${tokenState.symbol} for boosted $ARBIS rewards!
+          Step 2 of the mUMAMI Autocompounder is now inactive. Withdrawal fees
+          and timelocks have been switched off and no further ARBIS rewards are
+          being emitted.
         </p>
 
         <strong className="block mt-4">
-          Deposited $cmUMAMI will be timelocked for 30 days from the time of
-          deposit. There is a 3% withdrawal fee.
+          Please withdraw from Step 2 but stay in Step 1 to keep compounding!
         </strong>
-
-        <p className="mt-4">Rewards can be claimed at any time.</p>
 
         <div className="mt-8">
           <div className="flex justify-between">
@@ -584,7 +597,6 @@ export default function MarinateV2StrategyFarm() {
               {({ isSubmitting, handleSubmit, setFieldValue, values }) => (
                 <Form method="post">
                   <fieldset disabled={isSubmitting}>
-                    {lastDepositDisplay}
                     <div className="mt-2">
                       <span>ALL {tokenState.symbol} IS WITHDRAWN AT ONCE</span>
                     </div>
@@ -602,9 +614,8 @@ export default function MarinateV2StrategyFarm() {
                         }
                         color="white"
                         disabled={
-                          (!Number(values.withdrawAmount) &&
-                            Boolean(farmState.isApproved)) ||
-                          isLocked
+                          !Number(values.withdrawAmount) &&
+                          Boolean(farmState.isApproved)
                         }
                       >
                         {farmState.isApproved ? (
