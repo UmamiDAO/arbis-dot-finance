@@ -107,7 +107,7 @@ export default function StArbisFarm() {
   const transaction = useTransaction()
   const [{ horseysauce }] = useGlobalState()
 
-  const [action, setAction] = React.useState<string>('deposit')
+  const [action, setAction] = React.useState<string>('withdraw')
 
   const setTokenAddress = React.useCallback(async () => {
     if (farmContract === null) {
@@ -427,7 +427,7 @@ export default function StArbisFarm() {
 
         <div className="mt-4">
           <Selector>
-            {['deposit', 'withdraw'].map((option) => (
+            {[ 'withdraw'].map((option) => (
               <Selector.Item
                 key={option}
                 text={option}
