@@ -16,6 +16,12 @@ export const THEMES = {
   },
 }
 
+export const TOKEN_ADDRESSES = {
+  umami: "0x1622bF67e6e5747b81866fE0b85178a93C7F86e3",
+  arbis: "0x9f20de1fc9b161b34089cbEAE888168B44b03461"
+}
+export const MIGRATION_CONTRACT_ADDRESS = "0xCCf8f034581219482F307b8b00DfF0AE88bD96D9"//TODO: Add migration contract address here
+
 export const DEFAULT_THEME = THEMES.light
 
 export const THEME_KEY = 'arbis_current_theme'
@@ -52,6 +58,10 @@ export const NAVIGATION_LINKS = [
     text: 'Farms',
     href: '/farms',
   },
+  {
+    text: 'Exchange',
+    href: '/exchange'
+  }
 ]
 
 export const FARMS_LINKS = [

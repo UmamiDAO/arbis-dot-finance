@@ -15,6 +15,7 @@ import useGlobalState from '../hooks/useGlobalState'
 import StArbisAddress2 from '../contracts/StArbis2.address'
 import StArbisAbi from '../contracts/StArbis.abi'
 import ERC20Abi from '../contracts/ERC20.abi'
+import { Link } from 'react-router-dom'
 
 const wETH = '0x82af49447d8a07e3bd95bd0d56f35241523fbab1'
 // const Z2O = '0xdb96f8efd6865644993505318cc08ff9c42fb9ac'
@@ -93,7 +94,7 @@ export default function StArbisFarm() {
         default:
           throw new Error(
             'unsupported action type given on StArbisFarm reducer'
-          )
+          ) 
       }
     },
     initState
@@ -385,6 +386,11 @@ export default function StArbisFarm() {
       </DashboardCard.Subtitle>
 
       <DashboardCard.Content>
+
+      <p className="mt-4">
+         ⚠️ stARBIS is retiring. Please withdraw your ARBIS (all withdraw fees have been disabled) and <Link to="/exchange"><b><u>migrate</u></b></Link>  them to UMAMI. ⚠️ 
+        </p>
+
         <p className="mt-4">
           Stake your ${state.tokenSymbol} for $ETH passive income from fees from
           across the Arbis ecosystem!
