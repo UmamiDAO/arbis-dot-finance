@@ -190,23 +190,27 @@ export default function Migrate() {
   )
 
   const approveArbis = React.useCallback(
-    async () => {
+    async (signer: any, contract: any, amount: any) => {
+      console.log(`signer ${signer}, ${contract} arbis contract ${amount}`)
       if (
-        !userSigner ||
-        !arbisContract
+        !signer ||
+        !contract
       ) {
         return
       }
-      console.log(`trying`)
+      console.log(`trying ${state}`)
+      console.log(state)
       try {
-        const data = await arbisContract.interface.encodeFunctionData('approve', [
+        const data = await contract.interface.encodeFunctionData('approve', [
           MIGRATION_CONTRACT_ADDRESS,
-          parseEther(String(Number(state.tokenTotalSupply) + 1)),
+          parseEther(String(amount)),
         ])
 
         await transaction(
-          userSigner.sendTransaction({ to: TOKEN_ADDRESSES.arbis, data } as any)
+          signer.sendTransaction({ to: TOKEN_ADDRESSES.arbis, data } as any)
         )
+        setInterval(()=>{window.location.reload()}, 30000);
+       
       } catch (err) {
         notify.notification({
           eventCode: 'txError',
@@ -364,7 +368,7 @@ export default function Migrate() {
                                 ) : (
                                   <Button
                                     className="max-w"
-                                    onClick={() => approveArbis()}
+                                    onClick={() => approveArbis(userSigner, arbisContract, state.tokenTotalSupply)}
                                   >
                                     Approve
                                   </Button>

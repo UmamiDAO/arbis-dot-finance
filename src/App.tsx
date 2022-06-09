@@ -12,7 +12,6 @@ import Farms from './components/Farms'
 import ThemeSwitcher from './components/ThemeSwitcher'
 import { THEMES, DEFAULT_THEME, THEME_KEY } from './config'
 import Migrate from './components/Migrate'
-import { NotificationsProvider } from 'reapop'
 
 
 type Theme = typeof DEFAULT_THEME
@@ -41,7 +40,6 @@ function App() {
     <ThemeProvider theme={theme}>
       <GlobalStyle />
       <GlobalProvider>
-        <NotificationsProvider>
         <AppStyles>
           <div id="App">
             <HashRouter>
@@ -60,7 +58,6 @@ function App() {
             <ThemeSwitcher theme={getTheme()} changeTheme={changeTheme} />
           </div>
         </AppStyles>
-        </NotificationsProvider>
       </GlobalProvider>
     </ThemeProvider>
   )
