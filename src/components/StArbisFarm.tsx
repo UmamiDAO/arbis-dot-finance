@@ -20,6 +20,7 @@ const wETH = '0x82af49447d8a07e3bd95bd0d56f35241523fbab1'
 // const Z2O = '0xdb96f8efd6865644993505318cc08ff9c42fb9ac'
 const cheems = '0x75a2f30929c539e7d4ee033c9331b89f879c0cf7'
 const umami = '0x1622bF67e6e5747b81866fE0b85178a93C7F86e3'
+const arbis = '0x9f20de1fc9b161b34089cbeae888168b44b03461'
 
 const farmAddress = StArbisAddress2
 
@@ -205,6 +206,32 @@ export default function StArbisFarm() {
       dispatch({ type: 'error' })
     }
   }, [farmContract, tokenContract, userAddress, state])
+
+  const handleAddToWallet = React.useCallback(
+    async({symbol, image, decimals, address}) => {
+      console.log(symbol, image, decimals);
+      try {
+        if (window && window.ethereum) {
+          window.location.reload();// since the watch asset only works once for some reason we refresh the page so that way the user can seemlessly add more then one asset to their wallet
+          await window.ethereum.request({
+            method: 'wallet_watchAsset',
+            params: {
+              /* @ts-ignore */
+              type: 'ERC20', // Initially only supports ERC20, but eventually more!
+              options: {
+                address: address, // The address that the token is at.
+                symbol: symbol, // A ticker symbol or shorthand, up to 5 chars.
+                decimals: decimals, // The number of decimals in the token
+                image: image, // A string url of the token logo
+              },
+            },
+          });
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    }, []
+  )
 
   const handleDeposit = React.useCallback(
     async ({ depositAmount }, { resetForm }) => {
@@ -569,7 +596,7 @@ export default function StArbisFarm() {
         <strong>Current Reward(s):</strong>
 
         <ul>
-          <li className="flex justify-between">
+          <li className="flex justify-between" onClick={() => handleAddToWallet({symbol: "ARBIS", image: "https://raw.githubusercontent.com/Arbi-s/resources/main/arbis_logo.png", decimals: 18, address: arbis})}>
             <div>{state.availableARBIS}</div>
             <div>ARBIS</div>
           </li>
@@ -577,11 +604,11 @@ export default function StArbisFarm() {
             <div>{state.availableWETH}</div>
             <div>WETH</div>
           </li>
-          <li className="flex justify-between">
+          <li className="flex justify-between" onClick={() => handleAddToWallet({symbol: "CHEEMS", image: "https://raw.githubusercontent.com/Arbi-s/resources/main/Cheemsburbger.png", decimals: 18, address: cheems})}>
             <div>{state.avaiableCheems}</div>
             <div>CHEEMS</div>
           </li>
-          <li className="flex justify-between">
+          <li className="flex justify-between" onClick={() => handleAddToWallet({symbol: "UMAMI", image: "https://arbiscan.io/token/images/arbisfinanceumami_32.png", decimals: 9, address: umami})}>
             <div>{state.avaiableUmami}</div>
             <div>UMAMI</div>
           </li>
