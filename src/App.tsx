@@ -11,6 +11,8 @@ import NotFound from './components/NotFound'
 import Farms from './components/Farms'
 import ThemeSwitcher from './components/ThemeSwitcher'
 import { THEMES, DEFAULT_THEME, THEME_KEY } from './config'
+import Migrate from './components/Migrate'
+
 
 type Theme = typeof DEFAULT_THEME
 type ThemeOptions = 'light' | 'dark'
@@ -21,7 +23,6 @@ function App() {
     ? THEMES[savedThemeKey as ThemeOptions]
     : DEFAULT_THEME
   const [theme, setTheme] = React.useState<Theme>(initTheme)
-
   const getTheme = React.useCallback(() => {
     if (theme.color.includes('dark')) {
       return 'light'
@@ -44,12 +45,13 @@ function App() {
             <HashRouter>
               <Routes>
                 <Route path="/" element={<Layout />}>
-                  <Route index element={<Home />} />
-                  <Route path="*" element={<NotFound />} />
-                  <Route path="farms">
-                    <Route index element={<Farms />} />
-                    <Route path=":farm" element={<Farms />} />
-                  </Route>
+                <Route index element={<Home />} />
+                <Route path="*" element={<NotFound />} />
+                <Route path="exchange" element={ <Migrate />} />
+                <Route path="farms">
+                <Route index element={<Farms />} />
+                <Route path=":farm" element={<Farms />} />
+                </Route>
                 </Route>
               </Routes>
             </HashRouter>
