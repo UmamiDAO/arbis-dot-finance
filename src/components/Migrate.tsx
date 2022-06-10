@@ -246,7 +246,7 @@ export default function Migrate() {
   const arbisToUmamiPill = React.useMemo(() => {
     return arbisToUmami ? (
       <Pill className="mt-8 text-xl m-auto uppercase text-white">
-        1 UMAMI : {Number(arbisToUmami).toFixed(3)} ARBBIS
+        1 UMAMI : {Number(arbisToUmami).toFixed(3)} ARBIS
       </Pill>
     ) : null
   }, [arbisToUmami])
