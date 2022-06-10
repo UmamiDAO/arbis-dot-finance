@@ -1,5 +1,4 @@
 import React from 'react'
-import styled from 'styled-components'
 import { Field } from 'formik'
 import type { ReactNode } from 'react'
 
@@ -29,16 +28,9 @@ type FormFieldProps = {
   value?: string | number | boolean;
 };
 
-const ContentContainer = styled.div`
-  background-image: url("/assets/umami-finance-neotokyo-bg.png");
-  background-repeat: no-repeat;
-  background-size: 1200px auto;
-  background-position: bottom center;
-`
-
 function Header({ children }: ContentProps) {
   return (
-    <div className="flex rounded-md rounded-bl-none rounded-br-none p-4 bg-black border-b border-gray-500">
+    <div className="flex rounded-md rounded-bl-none rounded-br-none p-4 border-b border-gray-500">
       {children}
     </div>
   )
@@ -64,11 +56,11 @@ function HeaderActionDivider() {
 
 function Content({ children }: ContentProps) {
   return (
-    <ContentContainer className="flex h-full rounded rounded-tl-none rounded-tr-none w-full">
-      <div className="bg-black bg-opacity-80 flex-1 p-4 rounded rounded-tr-none rounded-tl-none">
+    <div className="flex h-full rounded w-full">
+      <div className="bg-opacity-80 flex-1 p-4 rounded">
         {children}
       </div>
-    </ContentContainer>
+    </div>
   )
 }
 
@@ -107,9 +99,7 @@ function FormField({
 
 export default function FormCard({ children, className }: FormCardProps) {
   return (
-    <div className="bg-gradient-to-b from-umami-pink to-umami-pink p-[3px] rounded-md">
-      <div className="bg-black text-white">{children}</div>
-    </div>
+    <div className="border border-black">{children}</div>
   )
 }
 

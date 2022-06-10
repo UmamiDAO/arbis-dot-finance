@@ -1,5 +1,4 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
 import { Formik, Form } from 'formik'
 import { FaExternalLinkAlt, FaChevronCircleDown } from 'react-icons/fa'
 
@@ -134,7 +133,7 @@ export default function Migrate() {
       })
       dispatch({ type: 'error' })
     }
-  }, [arbisContract, umamiContract, migrationContract, userAddress, state])
+  }, [arbisContract, umamiContract, migrationContract, userAddress])
 
 
   const initialize = React.useCallback(() => {
@@ -188,7 +187,7 @@ export default function Migrate() {
           autoDismiss: 10000,
         })
       }
-    }, []
+    }, [userSigner, transaction]
   )
 
   const approveArbis = React.useCallback(
@@ -221,15 +220,15 @@ export default function Migrate() {
           autoDismiss: 10000,
         })
       }
-    }, []
+    }, [transaction, state]
   )
 
-  const calcTokensFromShares = React.useCallback(
+  /* const calcTokensFromShares = React.useCallback(
     (amount: number | string) => {
       return Number(amount) * Number(arbisToUmami)
     },
     [arbisToUmami]
-  )
+  ) */
 
   const calcConvertedToken = React.useCallback(
     (amount: number | string) => {
@@ -239,7 +238,7 @@ export default function Migrate() {
 
       return Number(amount) / Number(arbisToUmami)
     },
-    [arbisToUmami, calcTokensFromShares]
+    [arbisToUmami]
   )
 
 
@@ -295,7 +294,7 @@ export default function Migrate() {
                 </a>
 
                 <a href="https://umami.finance/app/marinate"
-                  className="block font-semibold underline mt-4 duration-100 max-w-[18rem] hover:text-umami-yellow"
+                  className="block font-semibold underline mt-4 duration-100 max-w-xs hover:text-primary"
                 >
                   Deposit UMAMI for mUMAMI here!
                 </a>
