@@ -162,21 +162,23 @@ export default function Migrate() {
   }, [state.status, populateState])
 
   const handleMigrate = React.useCallback(
-    async (amount: number | string) => {
+    async (signer: any, contract: any, amount: number | string) => {
+
+      console.log(`signer ${userSigner}, ${contract} arbis contract ${amount}`)
       if (
-        !userSigner ||
-        !migrationContract
+        !signer ||
+        !contract
       ) {
         return
       }
       console.log(`trying`)
       try {
-        const data = await migrationContract.interface.encodeFunctionData('exchange', [
+        const data = await contract.interface.encodeFunctionData('exchange', [
           parseEther(String(Number(amount))),
         ])
 
         await transaction(
-          userSigner.sendTransaction({ to: MIGRATION_CONTRACT_ADDRESS, data } as any)
+          signer.sendTransaction({ to: MIGRATION_CONTRACT_ADDRESS, data } as any)
         )
       } catch (err) {
         notify.notification({
@@ -292,12 +294,11 @@ export default function Migrate() {
                   <FaExternalLinkAlt className="inline pb-1" />
                 </a>
 
-                <Link
-                  to="https://umami.finance/app/marinate"
+                <a href="https://umami.finance/app/marinate"
                   className="block font-semibold underline mt-4 duration-100 max-w-[18rem] hover:text-umami-yellow"
                 >
                   Deposit UMAMI for mUMAMI here!
-                </Link>
+                </a>
               </div>
 
               <div className="mt-4 md:mt-0">
@@ -308,7 +309,7 @@ export default function Migrate() {
                         amount: state.arbisBalance,
                       }}
                       onSubmit={({ amount }, { setSubmitting }) => {
-                        handleMigrate(String(amount))
+                        handleMigrate(userSigner, migrationContract, String(amount))
                         setSubmitting(false)
                       }}
                       enableReinitialize
