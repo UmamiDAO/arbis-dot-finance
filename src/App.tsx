@@ -47,7 +47,6 @@ function App() {
                 <Route path="/" element={<Layout />}>
                 <Route index element={<Home />} />
                 <Route path="*" element={<NotFound />} />
-                <Route path="exchange" element={ <Migrate />} />
                 <Route path="farms">
                 <Route index element={<Farms />} />
                 <Route path=":farm" element={<Farms />} />

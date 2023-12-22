@@ -9,6 +9,8 @@ export default function Navigation() {
         {NAVIGATION_LINKS.map((link) => (
           <NavigationLink link={link} key={link.text} />
         ))}
+        {/*
+        
         <ListItem className="text-center inline-block mr-8 cursor-pointer inline-block uppercase font-display font-extrabold transition duration-500 hover:text-primary">
           <a
             href="https://umami.finance"
@@ -18,6 +20,7 @@ export default function Navigation() {
             Umami
           </a>
         </ListItem>
+        */}
       </ul>
     </nav>
   )

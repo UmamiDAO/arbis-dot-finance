@@ -58,10 +58,11 @@ export const NAVIGATION_LINKS = [
     text: 'Farms',
     href: '/farms',
   },
+  /*
   {
     text: 'Exchange',
     href: '/exchange'
-  }
+  }*/
 ]
 
 export const FARMS_LINKS = [
